@@ -18,10 +18,16 @@ while [ "$i" -lt 600 ]; do ## 60 seconds of data collection
    i=$(( ${i} + 1 ))
 done
 
-echo "Data collection done. See data file in /tmp/stat_output.txt"
 
-cat /proc/cpuinfo > /tmp/cpu_info.txt
+echo "" > /tmp/router_info.txt
+echo "# CPUinfo" >> /tmp/router_info.txt
+cat /proc/cpuinfo >> /tmp/router_info.txt
+echo "# HZ estimate" >> /tmp/router_info.txt
+awk '{print "HZ="$22/'$(cat /proc/uptime | cut -d " " -f1)"}" /proc/self/stat >> /tmp/router_info.txt
 
-## run analysis script here
+
+echo "Data collection done. See data file in /tmp/stat_output.txt and router info in /tmp/router_info.txt"
+
+## potentially request permission and upload data here
 
 exit 0
