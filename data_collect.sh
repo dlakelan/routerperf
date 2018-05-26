@@ -105,7 +105,7 @@ LANIF=""
 # read the options
 
 # extract options and their arguments into variables.
-USAGE_STRING="Usage: sh data_collect.sh -wanif WAN_interface_name -lan LAN_interface_name [-4 -6] [ -d duration ] [ -p host-to-ping ]"
+USAGE_STRING="Usage: sh data_collect.sh -W WAN_interface_name -L LAN_interface_name [-4 -6] [ -d duration ] [ -p host-to-ping ]"
 if [ $# -eq 0 ] ; then
     echo ${USAGE_STRING}
     exit 1
@@ -114,23 +114,23 @@ fi
 while [ $# -gt 0 ] 
 do
     case "$1" in
-	-w|--wan|--wanif|--WAN)
+	-w|--wan|--wanif|--WAN|-W)
 	    case "$2" in
         	"") echo "Missing WAN interface name" ; exit 1 ;;
                 *) WANIF=$2 ; shift 2 ;;		
 	    esac ;;
-	-l|--lan|--lanif|--lAN)
+	-l|--lan|--lanif|--lAN|-L)
 	    case "$2" in
         	"") echo "Missing LAN interface name" ; exit 1 ;;
                 *) LANIF=$2 ; shift 2 ;;		
 	    esac ;;
 	-4|-6) TESTPROTO=$1 ; shift 1 ;;
-	-t|--time|-d|--duration) 
+	-t|--time|-d|--duration|-T|-D) 
 	    case "$2" in
         	#"") echo "Missing duration" ; exit 1 ;;
                 *) TESTDURATION_SECS=$2 ; shift 2 ;;
     	    esac ;;
-        -p|--ping|--pinghost)
+        -p|--ping|--pinghost|-P)
             case "$2" in
                 #"") echo "Missing ping host" ; exit 1 ;;
                 *) PINGHOST=$2 ; shift 2 ;;
@@ -243,7 +243,6 @@ fi
 
 
 ## dump the tc qdisc statistics at the end
-echo "" > ${TC_STAT_COLLECTION_FILE}
 echo 'TCstatisticsEnd(`' >> ${TC_STAT_COLLECTION_FILE}
 tc -s qdisc >> ${TC_STAT_COLLECTION_FILE}
 echo "')" >> ${TC_STAT_COLLECTION_FILE}
@@ -251,7 +250,7 @@ echo "')" >> ${TC_STAT_COLLECTION_FILE}
 
 echo "Data collection done. See data files:"
 echo "/proc output: ${PROC_STAT_COLLECTION_FILE}"
-echo " router info: ${ROUTER_INFO_COLLECTION_FILE}"
+echo "router info: ${ROUTER_INFO_COLLECTION_FILE}"
 echo "ICMP data: ${PING_COLLECTION_FILE}"
 echo "Please check all data files for sensitive private information before uploading to the internet."
 
