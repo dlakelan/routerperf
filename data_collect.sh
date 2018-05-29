@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh 
 
 #TODO:
 #	collect tc -s qdisc before and after the /proc/stat polling to get a better view into the shaper
@@ -24,11 +24,11 @@ ping_pid=0
 is_binary_from_coreutils() {
     local BINARY=${1}
     #echo "Testing whether ${BINARY} is the GNU coreutils version."
-    local TMP=$( ${BINARY} --v 2>/dev/null | grep -e "GNU coreutils" )
+    local TMP="$( ${BINARY} --v 2>/dev/null | grep -e "GNU coreutils" )"
     if [ -z "${TMP}" ] ; then
         echo "The ${BINARY} binary is not the required version from GNU coreutils."
         if [ -f "/etc/os-release" ] ; then
-    	    local TMP2=$( cat /etc/os-release | grep -m 1 -o -e openwrt )
+    	    local TMP2="$( cat /etc/os-release | grep -m 1 -o -e openwrt )"
     	    if [ ! -z "${TMP2}" ] ; then
     		echo "on openwrt/lede you might want to try running: opkg update ; opkg install coreutils-${BINARY}"
     	    fi
@@ -40,7 +40,7 @@ is_binary_from_coreutils() {
 is_binary_from_iputils() {
     local BINARY=${1}
     #echo "Testing whether ${BINARY} is the iputils version."
-    local TMP=$( ${BINARY} -V 2>/dev/null | grep -e "iputils" )
+    local TMP="$( ${BINARY} -V 2>/dev/null | grep -e "iputils" )"
     if [ -z "${TMP}" ] ; then
         echo "The ${BINARY} binary is not the required version from iputils."
         if [ -f "/etc/os-release" ] ; then
@@ -79,7 +79,7 @@ test_required_binaries() {
 kill_pings() {
     if [ "${ping_pid}" -ne "0" ] ; then
 	# check that ping_pid points to a ping process
-	local TMP=$( ps | grep -E "^\s*${ping_pid} " | grep "ping" )
+	local TMP="$( ps | grep -E "^\s*${ping_pid} " | grep "ping" )"
 	
 	if [ ! -z "${TMP}" ] ; then
 	    echo "Terminating running ICMP data collection"
@@ -97,7 +97,6 @@ kill_pings() {
 
 
 # set an initial values for defaults
-TESTDURATION_SECS="60"
 TESTPROTO="-4"
 WANIF=""
 LANIF=""
@@ -172,10 +171,14 @@ tc -s qdisc >> ${TC_STAT_COLLECTION_FILE}
 echo "')" >> ${TC_STAT_COLLECTION_FILE}
 
 
+## get a consistent start time for the whole process
+STARTTIME=$(date +"nstimestart(%s,%N)")
+
+
 ## Run background ping to ${PINGHOST}
 echo "Starting timestamped ICMP collection in the background."
 echo "pingformat(1)" > ${PING_COLLECTION_FILE}
-date +"nstimestart(%s,%N)" >> ${PING_COLLECTION_FILE} ;
+echo $STARTTIME >> ${PING_COLLECTION_FILE} ;
 # this will instruct ping to run 10 times longer than required, but after the main data collection is finished we will ternminate ping
 # NOTE:	that on 64 bit platforms only ping sizes >= bytes get RTT values (on 32 platforms size must be >= 8)
 # 	for simplicity always use size = 16...
@@ -190,7 +193,8 @@ ping_pid=$!
 echo "Beginning data collection (for ${TESTDURATION_SECS} seconds). Run speed test in 10 seconds."
 ## overwrite the output file with format info and initial timestamp
 echo "statformat(1)" > ${PROC_STAT_COLLECTION_FILE}
-date +"nstimestart(%s,%N)" >> ${PROC_STAT_COLLECTION_FILE}
+
+echo $STARTTIME >> ${PROC_STAT_COLLECTION_FILE}
 
 while [ "$i" -lt $(( TESTDURATION_SECS * 10 )) ]; do ## 60 seconds of data collection
    date +"nstimestamp(%s,%N)" >> ${PROC_STAT_COLLECTION_FILE}

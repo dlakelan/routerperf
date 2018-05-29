@@ -41,6 +41,7 @@ ggplot(smoothdat) + geom_point(aes(t,c(0,diff(cpuidle/cpucount))))
 ggplot(smoothdat) + geom_point(aes(t,c(0,diff(cpusirq/cpucount))))
 ggplot(smoothdat) + geom_point(aes(t,c(0,diff(cpusys/cpucount))))
 ggplot(smoothdat) + geom_point(aes(t,c(0,diff(cpuusr/cpucount))))
+
 ggplot(smoothdat,aes(c(0,diff(xfer)),c(0,diff(cpusirq/cpucount)))) + geom_point()+coord_cartesian(xlim=c(0,1500),ylim=c(0,1))+geom_smooth()+labs(x="Smoothed Transfer Estimate: Mbit/s",y="CPU SIRQ fraction")
 
 ggsave("ExampPlot2.png")
@@ -48,3 +49,5 @@ ggsave("ExampPlot2.png")
 ggplot(smoothdat,aes(c(0,diff(xfer)),c(1,diff(cpuidle/cpucount)))) + geom_point()+coord_cartesian(xlim=c(0,1500),ylim=c(0,1))+geom_smooth(method="lm")+labs(x="Smoothed Transfer Estimate: Mbit/s",y="CPU Idle fraction")
 
 ggsave("ExampPlotIdle.png")
+
+ggplot(smoothdat,aes(c(0,diff(xfer)),c(0,diff(cpuusr/cpucount)))) + geom_point()+coord_cartesian(xlim=c(0,1500),ylim=c(0,1))+geom_smooth(method="lm")+labs(x="Smoothed Transfer Estimate: Mbit/s",y="CPU Idle fraction")
