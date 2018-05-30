@@ -29,5 +29,11 @@ define(procs_running,`dnl')
 define(procs_blocked,`dnl')
 define(softirq,`dnl')
 define(`id',$1)
+define(`pingformat',`[')dnl
+define(`PING',`dnl')dnl
+define(`pingdata',`patsubst($1,`\[\([0-9]+\)\.\([0-9]+\)\][^
+]*time=\([0-9.]+\) ms',`nstimestamp(\1,\2`'000) "ping":\3}')')dnl
 divert dnl
-m4wrap(])dnl
+m4wrap(]
+)dnl
+

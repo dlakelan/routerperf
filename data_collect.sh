@@ -86,6 +86,7 @@ kill_pings() {
 	    kill -9 $ping_pid 
 	    wait $ping_pid 2>/dev/null
 	    ping_pid=0
+	    echo "')">>${PING_COLLECTION_FILE}
 	else
 	    echo "Expected ping pid (${ping_pid}) does not point to a running ping binary, nothing to terminate..."
 	fi
@@ -179,6 +180,7 @@ STARTTIME=$(date +"nstimestart(%s,%N)")
 echo "Starting timestamped ICMP collection in the background."
 echo "pingformat(1)" > ${PING_COLLECTION_FILE}
 echo $STARTTIME >> ${PING_COLLECTION_FILE} ;
+echo 'pingdata(`' >> ${PING_COLLECTION_FILE};
 # this will instruct ping to run 10 times longer than required, but after the main data collection is finished we will ternminate ping
 # NOTE:	that on 64 bit platforms only ping sizes >= bytes get RTT values (on 32 platforms size must be >= 8)
 # 	for simplicity always use size = 16...
