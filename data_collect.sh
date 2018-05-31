@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/sh
 
 #TODO:
 #	collect tc -s qdisc before and after the /proc/stat polling to get a better view into the shaper
@@ -95,6 +95,33 @@ kill_pings() {
     fi
 }
 
+
+get_information_from_ifstatus() {
+    local interface_name=$1
+    #echo "IF = ${interface_name}"
+    
+    if [ -f "$( which ifstatus )" ] ; then
+	#echo "Found ifstatus"
+	echo ${interface_name}'_ifstatus(`' >> ${ROUTER_INFO_COLLECTION_FILE}
+        echo "$( ifstatus ${interface_name} | grep -e \"l3_device\": )" >> ${ROUTER_INFO_COLLECTION_FILE}
+        echo "$( ifstatus ${interface_name} | grep -e \"proto\": )" >> ${ROUTER_INFO_COLLECTION_FILE}
+        echo "$( ifstatus ${interface_name} | grep -e \"device\": )" >> ${ROUTER_INFO_COLLECTION_FILE}
+        echo "')" >> ${ROUTER_INFO_COLLECTION_FILE}
+    else
+	echo "Did not find the ifstatus script, strange since we believe to be running on openwrt..."
+    fi
+}
+
+get_bridge_members() {
+    if [ -f "$( which brctl )" ] ; then
+	#echo "Found brctl"
+	echo 'brctl_show(`' >> ${ROUTER_INFO_COLLECTION_FILE}
+        echo "$( brctl show )" >> ${ROUTER_INFO_COLLECTION_FILE}
+        echo "')" >> ${ROUTER_INFO_COLLECTION_FILE}
+    else
+	echo "Did not find the brctl binary, "
+    fi
+}
 
 
 # set an initial values for defaults
@@ -232,6 +259,18 @@ echo 'cpuhzest(`' >> ${ROUTER_INFO_COLLECTION_FILE}
 awk '{print "HZ="$22/'$(cat /proc/uptime | cut -d " " -f1)"}" /proc/self/stat >> ${ROUTER_INFO_COLLECTION_FILE}
 echo "')" >> ${ROUTER_INFO_COLLECTION_FILE}
 
+## the kernel version+
+echo 'uname(`' >> ${ROUTER_INFO_COLLECTION_FILE}
+echo "$( uname -srvmp)" >> ${ROUTER_INFO_COLLECTION_FILE}
+echo "')" >> ${ROUTER_INFO_COLLECTION_FILE}
+
+
+if [ -f "/etc/os-release" ] ; then
+    echo "Found /etc/os-release; saving to router_info.txt."
+    echo 'os-release(`' >> ${ROUTER_INFO_COLLECTION_FILE}
+    cat /etc/os-release >> ${ROUTER_INFO_COLLECTION_FILE}
+    echo "')" >> ${ROUTER_INFO_COLLECTION_FILE}
+fi
 
 if [ -f "/etc/config/sqm" ] ; then
     echo "Found sqm-scripts config file; saving to router_info.txt."
@@ -246,6 +285,18 @@ if [ -f "/etc/config/qos" ] ; then
     cat /etc/config/qos >> ${ROUTER_INFO_COLLECTION_FILE}
     echo "')" >> ${ROUTER_INFO_COLLECTION_FILE}
 fi
+
+## openwrt specific information
+if [ -f "/etc/os-release" ] ; then
+    ISOPENWRT="$( cat /etc/os-release | grep -m 1 -o -e openwrt )"
+    if [ ! -z "${ISOPENWRT}" ] ; then
+	echo "Detected openwrt host, saving a few specific peices of information"
+	get_information_from_ifstatus "wan"
+	get_information_from_ifstatus "lan"
+	get_bridge_members
+    fi
+fi
+
 
 
 ## dump the tc qdisc statistics at the end
