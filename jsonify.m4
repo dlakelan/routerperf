@@ -16,7 +16,7 @@ define(`procstatformat',`"cpu":[patsubst($1,`\(cpu[0-9]*\) *\([0-9 ]+\)
 define(`Inter',`dnl')
 define(`face',`dnl')
 define(`procnetdev',`procnetformat(nocomma $1])')
-define(`procnetformat',`"interfaces":[patsubst($1,` *\([a-zA-Z0-9.]+\):\([ 0-9]*\)
+define(`procnetformat',`"interfaces":[patsubst($1,` *\([a-zA-Z0-9.-]+\):\([ 0-9]*\)
 ',`,
 ["\1",patsubst(\2,` +',`,')]')
 }
