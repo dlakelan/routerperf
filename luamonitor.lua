@@ -20,7 +20,11 @@ function getpingstats(ip,packsize)
    local l = {}
    for i=1,5,1 do
       l[i] = f:read("*line")
-      l[i] = string.gsub(l[i],".*time=([0-9.]*) ms.*","%1")
+      if(l[i]) then
+	 l[i] = string.gsub(l[i],".*time=([0-9.]*) ms.*","%1")
+      else
+	 error("pingfail")
+      end
    end
    table.sort(l) -- in place sort of ping times
    return({l[1],l[3],l[5]}) -- least median and upper value
@@ -91,29 +95,32 @@ function main ()
 		"one.one.one.one"}
    
    while true do
-      ip = ips[math.floor(math.random()* # ips)+1]
-      packsize = math.floor(math.random()*1400) +64
-      sleeptime = {tv_sec=10+math.floor(math.random() * 10 ),tv_nsec=0};
-      print("getting data")
-      posix.time.nanosleep(sleeptime);
-      now = timenow();
-      st = io.open("/proc/stat","r")
-      nd = io.open("/proc/net/dev","r")
-      st:setvbuf("no")
-      nd:setvbuf("no")
-      cpustats = readcpus(st)
-      netstats = readnetstats(nd)
-      pingstats = getpingstats(ip,packsize)
-      st = io.open("/proc/stat","r")
-      nd = io.open("/proc/net/dev","r")
-      st:setvbuf("no")
-      nd:setvbuf("no")
-      cpustats2 = readcpus(st)
-      netstats2 = readnetstats(nd)
-      after = timenow();
-      put_db_obs(conn,now,ip,packsize,cpustats,netstats,pingstats,cpustats2,netstats2,after)
+      pcall(function ()
+	    ip = ips[math.floor(math.random()* # ips)+1]
+	    packsize = math.floor(math.random()*1400) +64
+	    sleeptime = {tv_sec=10+math.floor(math.random() * 10 ),tv_nsec=0};
+	    --print("getting data")
+	    posix.time.nanosleep(sleeptime);
+	    now = timenow();
+	    st = io.open("/proc/stat","r")
+	    nd = io.open("/proc/net/dev","r")
+	    st:setvbuf("no")
+	    nd:setvbuf("no")
+	    cpustats = readcpus(st)
+	    netstats = readnetstats(nd)
+	    ok,pingstats = pcall(function() return getpingstats(ip,packsize) end)
+	    if(not ok) then error("pingfail") end
+	    st = io.open("/proc/stat","r")
+	    nd = io.open("/proc/net/dev","r")
+	    st:setvbuf("no")
+	    nd:setvbuf("no")
+	    cpustats2 = readcpus(st)
+	    netstats2 = readnetstats(nd)
+	    after = timenow();
+	    put_db_obs(conn,now,ip,packsize,cpustats,netstats,pingstats,cpustats2,netstats2,after)
+	    
+      end)
    end
-   
 end
 
 main()
