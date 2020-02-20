@@ -51,7 +51,8 @@ monitor_delays(RepPid, Sites) ->
 		    Factor = rand:uniform() * 0.15 + 0.85,
 		    RepPid ! {factor,Factor};
 	       true ->
-		    true
+		    Factor = rand:uniform() * 0.15 + 1.0,
+		    RepPid ! {factor,Factor}
 	    end,
 	    monitor_delays(RepPid,RecentSites)
     end.
