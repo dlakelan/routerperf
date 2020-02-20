@@ -15,7 +15,7 @@ pingtimes_ms(I,N,S) ->
 
 
 new_bandwidth(Cmd,NewBW) ->
-    %os:cmd(io_lib:format(Cmd,[NewBW])).
+    os:cmd(io_lib:format(Cmd,[NewBW])),
     io:format(Cmd,[NewBW]).
 
 monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
