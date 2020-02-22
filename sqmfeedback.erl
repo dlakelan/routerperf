@@ -8,14 +8,14 @@ pingtimes_ms(I,N,S) ->
     
     [_|Lines]=string:split(Pingstr,"\n",all),
     TT = lists:sublist(lists:flatten([re:replace(L,".*time=([0-9.]+) ms","\\1") || L <- Lines]),N),
-    Times = lists:sort([binary_to_float(T) || T <-TT]),
+    Times = lists:sort([try binary_to_float(T) catch Err:Reason -> float(binary_to_integer(T)) end || T <-TT]),
     io:format("ping ~s with results: ~w\n",[I,Times]),
     Times.
 
 
 
 new_bandwidth(Cmd,NewBW) ->
-    os:cmd(io_lib:format(Cmd,[NewBW])),
+    os:cmd(io_lib:format(Cmd,[round(NewBW)])),
     io:format(Cmd,[NewBW]).
 
 monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
