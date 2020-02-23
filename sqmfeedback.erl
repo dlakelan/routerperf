@@ -16,7 +16,7 @@ pingtimes_ms(I,N,S) ->
 
 new_bandwidth(Cmd,NewBW) ->
     os:cmd(io_lib:format(Cmd,[round(NewBW)])),
-    io:format(Cmd,[NewBW]).
+    io:format(Cmd,[round(NewBW)]).
 
 monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
     T = rand:uniform()*20+10, % sleep 10 to 30 seconds
