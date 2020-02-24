@@ -45,7 +45,7 @@ monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
 	    monitor_a_site(Rpid,Name,N,Inc,lists:sublist(Times,2,5))
 						% throw out the lowest, keep the next 5;
     catch
-	_ERR -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes)
+	error:_ERR -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes)
     end.
 
 
@@ -57,7 +57,7 @@ monitor_a_site(Monitor) ->
 	T ->
 	    monitor_a_site(RPid,Name,5,20,T)
     catch
-	_ -> monitor_a_site(Monitor)
+	error:_ -> monitor_a_site(Monitor)
     end.
 
 
@@ -95,16 +95,51 @@ adjuster(Tuples) ->
     end.
 
 
-timer_process(P,_T) ->
-    timer:send_interval(30000,P,{timer,erlang:system_time(seconds)}).
+timer_process(P,T) ->
+    erlang:send_after(T*1000,P,{timer,erlang:system_time(seconds)}),
+    erlang:send_after(T*1000,self(),go),
+    receive
+	_ -> timer_process(P,T)
+    end.
+
 
 
 
 monitor_ifaces(Tuples,Sites) ->
-    _SitePids = lists:map(fun(Tup) -> spawn(sqmfeedback,monitor_a_site,[Tup]) end,[{self(),S}||S <- Sites]),
-    AdjPid = spawn(sqmfeedback,adjuster,[Tuples]),
-    MonPid = spawn(sqmfeedback,monitor_delays,[AdjPid,[]]),
-    _TimerPid = spawn(sqmfeedback,timer_process,[MonPid,40]).
+    SitePids = lists:map(fun(Tup) -> 
+				 {_,Site} = Tup,
+				 {proc_lib:spawn_link(sqmfeedback,monitor_a_site,[Tup]),Site} end,
+			 [{self(),S}||S <- Sites]),
+    AdjPid = proc_lib:spawn_link(sqmfeedback,adjuster,[Tuples]),
+    MonPid = proc_lib:spawn_link(sqmfeedback,monitor_delays,[AdjPid,[]]),
+    TimerPid = proc_lib:spawn_link(sqmfeedback,timer_process,[MonPid,40]),
+    process_flag(trap_exit,true), %% we want to hear about exits
+    monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,TimerPid).
+
+monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,TimerPid) ->
+    receive
+	{'EXIT',Pid, _Reason} -> 
+	    DeadSite = [ S  || {P,S} <- Sites,P == Pid],
+	    if
+		DeadSite /= [] ->
+		    {Pid,Site} = lists:nth(1,DeadSite),
+		    NewSitePid = proc_lib:spawn_link(sqmfeedback,monitor_a_site,{self(),Site}),
+		    monitor_ifaces(Tuples,Sites,[{NewSitePid,Site}|Sites--[Pid]],
+				   AdjPid,MonPid,TimerPid);
+		Pid == AdjPid ->
+		    NewAdj = proc_lib:spawn_link(sqmfeedback,adjuster,[Tuples]),
+		    monitor_ifaces(Tuples,Sites,SitePids,NewAdj,MonPid,TimerPid);
+	       Pid == MonPid ->
+		    NewMon = proc_lib:spawn_link(sqmfeedback,monitor_delays,[AdjPid,[]]),
+		    monitor_ifaces(Tuples,Sites,SitePids,AdjPid,NewMon,TimerPid);
+	       Pid == TimerPid ->
+		    io:format("respawning timer:\n"),
+		    NewTimer = proc_lib:spawn_link(sqmfeedback,timer_process,[MonPid,40]),
+		    monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,NewTimer);
+	       true -> true
+	    end;
+	_ -> monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,TimerPid)
+    end.
 
 
 main() ->
@@ -114,7 +149,7 @@ main() ->
     ["dns.google.com","one.one.one.one","quad9.net","facebook.com",
      "gstatic.com","cloudflare.com","fbcdn.com","akamai.com","amazon.com"]),
     receive
-	true -> true
+	_ -> true
     end.
 
 
