@@ -1,19 +1,30 @@
 -module(sqmfeedback).
--export([main/0,monitor_ifaces/2,monitor_a_site/1,adjuster/1,monitor_delays/2,timer_process/2 ]).
+-export([main/0,pingtimes_ms/3,monitor_ifaces/2,monitor_a_site/1,adjuster/1,monitor_delays/2,timer_process/2 ]).
+
+
+pingline_to_ms(Line) ->
+    case re:replace(Line,".*time=([0-9.]+) ms","\\1") of
+	[[L]] ->
+	    try binary_to_float(L) 
+	    catch 
+		error:_Reason -> 
+		    try float(binary_to_integer(L)) 
+		    catch
+			error:_ -> false
+		    end
+	    end;
+	_ -> false
+    end.
 
 
 
 pingtimes_ms(I,N,S) -> 
     Pingstr = os:cmd(io_lib:format("ping -c ~B -i 0.2 -s ~B ~s",[N,S,I])),
-    
     [_|Lines]=string:split(Pingstr,"\n",all),
-    
-    TT = lists:sublist(lists:flatten([re:replace(L,".*time=([0-9.]+) ms","\\1") || L <- Lines]),N),
-    Times = lists:sort([try binary_to_float(T) catch _Reason -> float(binary_to_integer(T)) end || T <-TT]),
+    TT = [pingline_to_ms(L) || L <- Lines],
+    Times = lists:sort([T || T <-TT, is_float(T)]),
     io:format("ping ~s with results: ~w\n",[I,Times]),
     Times.
-
-
 
 new_bandwidth(Cmd,NewBW) ->
     os:cmd(io_lib:format(Cmd,[NewBW])),
