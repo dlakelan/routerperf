@@ -2,6 +2,8 @@
 -export([main/0,pingtimes_ms/3,monitor_ifaces/2,monitor_a_site/1,adjuster/1,monitor_delays/2,timer_process/2 ]).
 
 
+%% Read a line of ping output and extract the time in milliseconds
+
 pingline_to_ms(Line) ->
     case re:replace(Line,".*time=([0-9.]+) ms","\\1") of
 	[[L]] ->
@@ -17,6 +19,8 @@ pingline_to_ms(Line) ->
     end.
 
 
+%% ping an Internet site I, N times, using packets sized S bytes and
+%% extract the ping times into a list of floating point times in ms
 
 pingtimes_ms(I,N,S) -> 
     Pingstr = os:cmd(io_lib:format("ping -c ~B -i 0.2 -s ~B ~s",[N,S,I])),
@@ -26,9 +30,21 @@ pingtimes_ms(I,N,S) ->
     io:format("ping ~s with results: ~w\n",[I,Times]),
     Times.
 
+
+%% change the bandwidth on a given interface to NewBW by using the Cmd
+%% as a format string and then running the command, also print the
+%% command for debugging
+
 new_bandwidth(Cmd,NewBW) ->
     os:cmd(io_lib:format(Cmd,[NewBW])),
     io:format(Cmd ++"\n",[NewBW]).
+
+
+%% repeatedly select a random delay, and then sleep that long and try
+%% pinging a given site and report to our parent PID if we detect a
+%% delay. Throw away the shortest ping, keep the next 5 as our
+%% baseline. Always comparing the 3rd ping to the highest ping to
+%% detect delay.
 
 monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
     T = rand:uniform()*20+10, % sleep 10 to 30 seconds
@@ -49,7 +65,8 @@ monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
     end.
 
 
-
+%% gets us started in the loop, by trying to get a minimum of 5 pings
+%% as our initial baseline
 
 monitor_a_site(Monitor) ->
     {RPid,Name} = Monitor,
@@ -61,6 +78,11 @@ monitor_a_site(Monitor) ->
     end.
 
 
+%% run this in a thread, we wait for our pingers to report delays to
+%% us. We keep track of delays and a separate thread gives us timer
+%% interrupts where we regularly check if a sufficient number of sites
+%% experience a delay in the last 30 seconds, we adjust the bandwidth
+%% down, otherwise we adjust the bandwidth up.
 
 monitor_delays(RepPid, Sites) ->
     receive 
@@ -81,7 +103,11 @@ monitor_delays(RepPid, Sites) ->
 	    monitor_delays(RepPid,RecentSites)
     end.
 
-
+%% When the monitor_delays thread detects a need to change the
+%% bandwidth it fires off a message to a thread running this code,
+%% where it just multiplies the bandwidth by a random factor and then
+%% calls the OS to change the bandwidth. Note that we keep track of
+%% bandwidth in integer Kbps units so we round the number.
 
 adjuster(Tuples) ->
     receive
@@ -95,6 +121,9 @@ adjuster(Tuples) ->
     end.
 
 
+%% this is a process that just tells the monitor process to check for
+%% sufficient delay on a regular basis.
+
 timer_process(P,T) ->
     erlang:send_after(T*1000,P,{timer,erlang:system_time(seconds)}),
     erlang:send_after(T*1000,self(),go),
@@ -103,6 +132,9 @@ timer_process(P,T) ->
     end.
 
 
+%% a supervisory thread that fires off processes to do all the
+%% pinging, and checking and timing etc, and then restarts them if
+%% they die.
 
 
 monitor_ifaces(Tuples,Sites) ->
@@ -140,6 +172,12 @@ monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,TimerPid) ->
 	    end;
 	_ -> monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,TimerPid)
     end.
+
+
+%% entry point to the code, adjust the interface names and bandwidths
+%% here. the 3 bandwidths are min, start, and max values for the
+%% interface in *integer* Kbps units. You can also select different
+%% sites to monitor with pings
 
 
 main() ->
