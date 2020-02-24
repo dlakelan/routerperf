@@ -93,6 +93,8 @@ monitor_delays(RepPid, Sites) ->
 	    io:format("Checking up on things: ~B\n",[erlang:system_time(seconds)]),
 	    Now=erlang:system_time(seconds),
 	    RecentSites = [{Site, Del, T} || {Site,Del,T} <- Sites, T > Now-30],
+	    io:format("Full Delayed Site List: ~w\n",Sites),
+	    io:format("Recent Delayed Site List: ~w\n",RecentSites),
 	    if length(RecentSites) > 2 ->
 		    Factor = rand:uniform() * 0.15 + 0.85,
 		    RepPid ! {factor,Factor};
