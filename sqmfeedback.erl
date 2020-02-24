@@ -143,12 +143,12 @@ timer_process(P,T) ->
 
 
 monitor_ifaces(Tuples,Sites) ->
+    AdjPid = proc_lib:spawn_link(sqmfeedback,adjuster,[Tuples]),
+    MonPid = proc_lib:spawn_link(sqmfeedback,monitor_delays,[AdjPid,[]]),
     SitePids = lists:map(fun(Tup) -> 
 				 {_,Site} = Tup,
 				 {proc_lib:spawn_link(sqmfeedback,monitor_a_site,[Tup]),Site} end,
-			 [{self(),S}||S <- Sites]),
-    AdjPid = proc_lib:spawn_link(sqmfeedback,adjuster,[Tuples]),
-    MonPid = proc_lib:spawn_link(sqmfeedback,monitor_delays,[AdjPid,[]]),
+			 [{MonPid,S}||S <- Sites]),
     TimerPid = proc_lib:spawn_link(sqmfeedback,timer_process,[MonPid,40]),
     process_flag(trap_exit,true), %% we want to hear about exits
     monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,TimerPid).
@@ -160,7 +160,7 @@ monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,TimerPid) ->
 	    if
 		DeadSite /= [] ->
 		    {Pid,Site} = lists:nth(1,DeadSite),
-		    NewSitePid = proc_lib:spawn_link(sqmfeedback,monitor_a_site,{self(),Site}),
+		    NewSitePid = proc_lib:spawn_link(sqmfeedback,monitor_a_site,{MonPid,Site}),
 		    monitor_ifaces(Tuples,Sites,[{NewSitePid,Site}|Sites--[Pid]],
 				   AdjPid,MonPid,TimerPid);
 		Pid == AdjPid ->
