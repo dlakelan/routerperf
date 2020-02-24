@@ -48,20 +48,23 @@ new_bandwidth(Cmd,NewBW) ->
 
 monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
     T = rand:uniform()*20+10, % sleep 10 to 30 seconds
-    timer:sleep(round(T*1000)),
-    try pingtimes_ms(Name,N,50) of
-	MS ->
-	    Times = lists:sort(lists:append(FiveTimes,MS)),
-	    Delay= lists:last(Times) - lists:nth(3,Times),
-	    if Delay > 10.0 -> 
-		    Rpid ! {delay,Name,Delay,erlang:system_time(seconds)};
-	       true -> 
-		    true
-	    end,
-	    monitor_a_site(Rpid,Name,N,Inc,lists:sublist(Times,2,5))
+    erlang:send_after(round(T*1000),self(),go),
+    receive
+	_ ->
+	    try pingtimes_ms(Name,N,50) of
+		MS ->
+		    Times = lists:sort(lists:append(FiveTimes,MS)),
+		    Delay= lists:last(Times) - lists:nth(3,Times),
+		    if Delay > 10.0 -> 
+			    Rpid ! {delay,Name,Delay,erlang:system_time(seconds)};
+		       true -> 
+			    true
+		    end,
+		    monitor_a_site(Rpid,Name,N,Inc,lists:sublist(Times,2,5))
 						% throw out the lowest, keep the next 5;
-    catch
-	error:_ERR -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes)
+	    catch
+		error:_ERR -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes)
+	    end
     end.
 
 
@@ -93,8 +96,8 @@ monitor_delays(RepPid, Sites) ->
 	    io:format("Checking up on things: ~B\n",[erlang:system_time(seconds)]),
 	    Now=erlang:system_time(seconds),
 	    RecentSites = [{Site, Del, T} || {Site,Del,T} <- Sites, T > Now-30],
-	    io:format("Full Delayed Site List: ~w\n",Sites),
-	    io:format("Recent Delayed Site List: ~w\n",RecentSites),
+	    io:format("Full Delayed Site List: ~w\n",[Sites]),
+	    io:format("Recent Delayed Site List: ~w\n",[RecentSites]),
 	    if length(RecentSites) > 2 ->
 		    Factor = rand:uniform() * 0.15 + 0.85,
 		    RepPid ! {factor,Factor};
