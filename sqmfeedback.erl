@@ -52,10 +52,14 @@ monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
     receive
 	_ ->
 	    try pingtimes_ms(Name,N,50) of
+		[] -> 
+		    monitor_a_site(Rpid,Name,N,Inc,FiveTimes);
 		MS ->
 		    Times = lists:sort(lists:append(FiveTimes,MS)),
 		    Delay= lists:last(Times) - lists:nth(3,Times),
-		    if Delay > 10.0 -> 
+		    if 
+			
+			Delay > 10.0 -> 
 			    Rpid ! {delay,Name,Delay,erlang:system_time(seconds)};
 		       true -> 
 			    true
@@ -63,7 +67,10 @@ monitor_a_site(Rpid,Name,N,Inc,FiveTimes) ->
 		    monitor_a_site(Rpid,Name,N,Inc,lists:sublist(Times,2,5))
 						% throw out the lowest, keep the next 5;
 	    catch
-		error:_ERR -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes)
+		error:_ERR -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes);
+		exit:_ -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes);
+		throw:_ -> monitor_a_site(Rpid,Name,N,Inc,FiveTimes)			      
+				  
 	    end
     end.
 
@@ -98,11 +105,17 @@ monitor_delays(RepPid, Sites) ->
 	    RecentSites = [{Site, Del, T} || {Site,Del,T} <- Sites, T > Now-30],
 	    io:format("Full Delayed Site List: ~w\n",[Sites]),
 	    io:format("Recent Delayed Site List: ~w\n",[RecentSites]),
+
+	    %% use random scaling factors, but make sure down followed
+	    %% by up averages slightly less than 1, based on
+	    %% simulations this averages around .98... this ensures
+	    %% we don't grow too fast.
+
 	    if length(RecentSites) > 2 ->
 		    Factor = rand:uniform() * 0.15 + 0.85,
 		    RepPid ! {factor,Factor};
 	       true ->
-		    Factor = rand:uniform() * 0.15 + 1.0,
+		    Factor = rand:uniform() * 0.12 + 1.0,
 		    RepPid ! {factor,Factor}
 	    end,
 	    monitor_delays(RepPid,RecentSites)
