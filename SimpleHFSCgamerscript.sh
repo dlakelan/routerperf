@@ -43,8 +43,8 @@ GAMINGIPSET6="realtimeset6"
 
 ipset del realtimeset4 > /dev/null 2>&1
 ipset del realtimeset6 > /dev/null 2>&1
-ipset create realtimeset4 || echo "ERROR: could not create realtimeset4 do you have ipsets working?"
-ipset create realtimeset6 || echo "ERROR: could not create realtimeset6 do you have ipsets working?"
+ipset create realtimeset4 hash:ip || echo "ERROR: could not create realtimeset4 do you have ipsets working?"
+ipset create realtimeset6 hash:ip || echo "ERROR: could not create realtimeset6 do you have ipsets working?"
 
 ## some examples to add your gaming devices to the realtime sets,
 ## allows you to have more than one console etc. Just add your ips
