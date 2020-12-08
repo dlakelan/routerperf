@@ -54,7 +54,7 @@ for ip4 in 192.168.1.111 192.168.1.222; do
     ipset add realtimeset4 "$ip4"
 done
 
-for ip6 in fd01:0101::1 fd01:0101::2 ; do
+for ip6 in 2001:db8::1 2001:db8::2 ; do
     ipset add realtimeset6 "$ip6"
 done
 
