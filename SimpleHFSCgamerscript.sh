@@ -16,6 +16,7 @@ DOWNRATE=65000 #change this to about 80% of your download speed (in kbps)
 GAMEUP=800
 GAMEDOWN=1600
 
+DSCPSCRIPT="/etc/dscptag.sh"
 
 
 if [ $((DOWNRATE*10/UPRATE > 100)) -eq 1 ]; then
@@ -124,6 +125,7 @@ EOF
 
 ipt64 (){
     iptables $*
+    ip6tables $*
 }
 
 
@@ -266,6 +268,10 @@ if [ "$cont" = "y" ]; then
 
     ipt64 -t mangle -F POSTROUTING
 
+    ipt64 -N dscptag
+
+    ipt64 -t mangle -A POSTROUTING -j dscptag
+    
     if [ "$WASHDSCPUP" = "yes" ]; then
 	ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
     fi
@@ -273,21 +279,7 @@ if [ "$cont" = "y" ]; then
 	ipt64 -t mangle -A FORWARD -i $WAN -j DSCP --set-dscp-class CS0
     fi
 
-    iptables -t mangle -A POSTROUTING -p udp -m set --match-set "${GAMINGIPSET4}" src -j DSCP --set-dscp-class CS7
-    iptables -t mangle -A POSTROUTING -p udp -m set --match-set "${GAMINGIPSET4}" dst -j DSCP --set-dscp-class CS7
-
-    ip6tables -t mangle -A POSTROUTING -p udp -m set --match-set "${GAMINGIPSET6}" src -j DSCP --set-dscp-class CS7
-    ip6tables -t mangle -A POSTROUTING -p udp -m set --match-set "${GAMINGIPSET6}" dst -j DSCP --set-dscp-class CS7
-
-    ## downgrade torrents etc UDP:
-    ipt64 -t mangle -A POSTROUTING -p udp -m multiport --sports "$UDPBULKPT" -j DSCP --set-dscp-class CS1
-    ipt64 -t mangle -A POSTROUTING -p udp -m multiport --dports "$UDPBULKPT" -j DSCP --set-dscp-class CS1
-
-    ## downgrade torrents etc TCP:
-    ipt64 -t mangle -A POSTROUTING -p tcp -m multiport --sports "$TCPBULKPT" -j DSCP --set-dscp-class CS1
-    ipt64 -t mangle -A POSTROUTING -p tcp -m multiport --dports "$TCPBULKPT" -j DSCP --set-dscp-class CS1
-    
-
+    source $DSCPSCRIPT
     
     ipt64 -t mangle -A POSTROUTING -j CLASSIFY --set-class 1:13 # default everything to 1:13,  the "normal" qdisc
     
