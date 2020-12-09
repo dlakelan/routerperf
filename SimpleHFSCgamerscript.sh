@@ -84,7 +84,7 @@ WASHDSCPUP="yes"
 WASHDSCPDOWN="yes"
 
 
-
+######################### CUSTOMIZATIONS GO ABOVE THIS LINE ###########
 
 cat <<EOF
 
