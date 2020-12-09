@@ -70,6 +70,10 @@ UDPBULKPT="51413"
 TCPBULKPT="51413,6881:6889"
 
 
+WASHDSCPUP="yes"
+WASHDSCPDOWN="yes"
+
+
 
 
 cat <<EOF
@@ -260,6 +264,13 @@ read -r cont
 if [ "$cont" = "y" ]; then
 
     ipt64 -t mangle -F POSTROUTING
+
+    if [ "$WASHDSCPUP" = "yes" ]; then
+	ipt64 -t mangle -A POSTROUTING -i $LAN -j DSCP --set-dscp-class CS0
+    fi
+    if [ "$WASHDSCPDOWN" = "yes" ]; then
+	ipt64 -t mangle -A POSTROUTING -i $WAN -j DSCP --set-dscp-class CS0
+    fi
 
     iptables -t mangle -A POSTROUTING -p udp -m set --match-set "${GAMINGIPSET4}" src -j DSCP --set-dscp-class CS7
     iptables -t mangle -A POSTROUTING -p udp -m set --match-set "${GAMINGIPSET4}" dst -j DSCP --set-dscp-class CS7
