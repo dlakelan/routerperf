@@ -68,4 +68,14 @@ All "normal" classes will use all available bandwidth if they are the
 only class using bandwidth. The realtime class will only use at most
 GAMEUP or GAMEDOWN.
 
+This script will limit your download to at most 10x your upload, this
+is to avoid flooding your upload with ACK packets that compete with
+your gaming. For slow speed connections below 3Mbps, it also does MSS
+clamping to encourage your TCP streams to use 540 byte packets to
+reduce the "lumpiness" of your queue thereby reducing jitter and
+dropped packets.
 
+This should allow you to game on a shared line down to in the range of
+700kbps, however of course having higher speed connections will in
+general be better. A 3000kbps connection and above should have
+absolutely fluid gaming traffic with proper tuning of the settings.
