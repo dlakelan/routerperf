@@ -17,6 +17,7 @@ GAMEUP=800
 GAMEDOWN=1600
 
 
+
 if [ $((DOWNRATE*10/UPRATE > 100)) -eq 1 ]; then
     echo "We limit the downrate to at most 10x the upstream rate to ensure no upstream ACK floods occur which can cause game packet drops"
     DOWNRATE=$((10*UPRATE))
@@ -266,10 +267,10 @@ if [ "$cont" = "y" ]; then
     ipt64 -t mangle -F POSTROUTING
 
     if [ "$WASHDSCPUP" = "yes" ]; then
-	ipt64 -t mangle -A POSTROUTING -i $LAN -j DSCP --set-dscp-class CS0
+	ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
     fi
     if [ "$WASHDSCPDOWN" = "yes" ]; then
-	ipt64 -t mangle -A POSTROUTING -i $WAN -j DSCP --set-dscp-class CS0
+	ipt64 -t mangle -A FORWARD -i $WAN -j DSCP --set-dscp-class CS0
     fi
 
     iptables -t mangle -A POSTROUTING -p udp -m set --match-set "${GAMINGIPSET4}" src -j DSCP --set-dscp-class CS7
@@ -313,7 +314,7 @@ if [ "$cont" = "y" ]; then
 	echo "Requires use of tc filters! -j CLASSIFY won't work!"
     fi
 
-    if [ $((DOWNRATE*10/UPRATE > 45)) -eq 1 ]; then
+    if [ $UPRATE -lt 5000 && $((DOWNRATE*10/UPRATE > 45)) -eq 1]; then
 	## we need to trim acks in the upstream direction, we let
 	## through a certain number based on download rate and 540
 	## byte MSS, then drop 90% of the rest:
