@@ -44,4 +44,28 @@ or in your /etc/rc.local do
 ```
 echo y | /etc/SimpleHFSCgamerscript.sh
 ```
-so it starts at boot
+so it starts at boot.
+
+## What this script does:
+
+
+This script sets up a HFSC queue system on your WAN and LAN ethernet
+interfaces. It offers 5 classes of traffic. The most important class
+is 1:11 which is for use by realtime UDP traffic to and from a list of
+gaming machines which is set by you.
+
+The remaining classes 1:12, 1:13, 1:14, 1:15 are non-realtime but have
+different bandwidth and latency behavior when there is contention. You
+can edit the dscptag.sh script to tag DSCP on whatever packets you
+want to enter each class.
+
+- CS4 goes to 1:12 which will have relatively low latency, good for interactive video chats, or casual gaming on a non-dedicated game machine
+- CS3 or by default anything else goes to 1:13 which is for normal browsing
+- CS2 goes to 1:14 which will tend to pause and allow other traffic to go ahead, this is useful for medium long downloads
+- CS1 goes to 1:15 and has very poor bandwidth and long latency when there is contention with other classes. This is good for all-night torrenting etc.
+
+All "normal" classes will use all available bandwidth if they are the
+only class using bandwidth. The realtime class will only use at most
+GAMEUP or GAMEDOWN.
+
+
