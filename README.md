@@ -69,6 +69,16 @@ This should allow you to game on a shared line down to in the range of
 general be better. A 3000kbps connection and above should have
 absolutely fluid gaming traffic with proper tuning of the settings.
 
+In general as you go to higher speeds, you can reserve 10-15% of your
+bandwidth for "gaming" queue, without major problems. So if you have
+20Mbps upload you can reserve 2000 or 3000 for GAMEUP... similarly for
+GAMEDOWN.
+
+When you have lower speeds, it's still recommended to keep GAMEUP
+greater than 500 and GAMEDOWN greater than 1500. If you have speeds
+below 700kbps do not expect to be able to play games, but you can try
+by careful tuning.  
+
 
 # Router performance analysis scripts (other scripts in this github)
 
