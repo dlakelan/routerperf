@@ -314,7 +314,7 @@ if [ "$cont" = "y" ]; then
 	echo "Requires use of tc filters! -j CLASSIFY won't work!"
     fi
 
-    if [ $UPRATE -lt 5000 && $((DOWNRATE*10/UPRATE > 45)) -eq 1 ]; then
+    if [ $UPRATE -lt 5000 -a $((DOWNRATE*10/UPRATE > 45)) -eq 1 ]; then
 	## we need to trim acks in the upstream direction, we let
 	## through a certain number based on download rate and 540
 	## byte MSS, then drop 90% of the rest:
