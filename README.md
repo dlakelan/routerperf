@@ -18,6 +18,7 @@ responsive QoS for a wired router with a single LAN on OpenWrt
 - log into your OpenWrt router
 - cd /etc
 - wget https://raw.githubusercontent.com/dlakelan/routerperf/master/SimpleHFSCgamerscript.sh
+- chmod a+x /etc/SimpleHFSCgamerscript.sh
 - wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
 - edit SimpleHFSCgamerscript.sh to set your WAN and LAN interfaces, your network speeds, and the speed you reserve for your game (GAMEUP and GAMEDOWN)
 - edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
