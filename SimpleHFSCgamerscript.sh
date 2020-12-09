@@ -276,8 +276,8 @@ if [ "$cont" = "y" ]; then
 
     ipt64 -t mangle -F POSTROUTING
 
-    ipt64 -N dscptag
-
+    ipt64 -t mangle -N dscptag
+    
     ipt64 -t mangle -A POSTROUTING -j dscptag
     
     if [ "$WASHDSCPUP" = "yes" ]; then

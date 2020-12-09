@@ -2,14 +2,14 @@
 ## shell variables from that script
 
 ipt64dscp(){
-    iptables -A dscptag $*
-    ip6tables -A dscptag $*
+    iptables -t mangle -A dscptag $*
+    ip6tables -t mangle -A dscptag $*
 }
 ipt4dscp() {
-    iptables -A dscptag $*
+    iptables -t mangle -A dscptag $*
 }
 ipt6dscp() {
-    ip6tables -A dscptag $*
+    ip6tables -t mangle -A dscptag $*
 }
 
 
