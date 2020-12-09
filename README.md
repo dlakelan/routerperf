@@ -1,16 +1,5 @@
-# Router performance analysis scripts
 
-This software collects data on a router running OpenWRT (or other
-linux) and creates a data file. It also includes scripts to transform
-that data file into a file containing a single JSON array, and some
-data analysis scripts in R.
-
-The idea is we will eventually crowdsource a bunch of the data files,
-and create predictions for reliable SQM shaping bandwidth that each
-router supported by OpenWRT can handle.
-
-
-# Router custom QoS script:
+# Router custom QoS script: SimpleHFSCgamerscript.sh
 
 SimpleHFSCgamerscript.sh is a shell script that will set up highly
 responsive QoS for a wired router with a single LAN on OpenWrt
@@ -79,3 +68,17 @@ This should allow you to game on a shared line down to in the range of
 700kbps, however of course having higher speed connections will in
 general be better. A 3000kbps connection and above should have
 absolutely fluid gaming traffic with proper tuning of the settings.
+
+
+# Router performance analysis scripts (other scripts in this github)
+
+This software collects data on a router running OpenWRT (or other
+linux) and creates a data file. It also includes scripts to transform
+that data file into a file containing a single JSON array, and some
+data analysis scripts in R.
+
+The idea is we will eventually crowdsource a bunch of the data files,
+and create predictions for reliable SQM shaping bandwidth that each
+router supported by OpenWRT can handle. This project is no longer active.
+
+
