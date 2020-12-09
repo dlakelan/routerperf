@@ -79,6 +79,7 @@ data analysis scripts in R.
 
 The idea is we will eventually crowdsource a bunch of the data files,
 and create predictions for reliable SQM shaping bandwidth that each
-router supported by OpenWRT can handle. This project is no longer active.
+router supported by OpenWRT can handle. This portion of the project is
+no longer active.
 
 
