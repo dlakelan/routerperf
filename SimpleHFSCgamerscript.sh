@@ -18,6 +18,14 @@ GAMEDOWN=1600
 
 DSCPSCRIPT="/etc/dscptag.sh"
 
+if [ ! -f $DSCPSCRIPT ]; then
+    workdir=$(pwd)
+    echo "You do not have the DSCP tagging script, downloading from github"
+    cd /etc/
+    wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
+    cd $workdir
+fi
+
 
 if [ $((DOWNRATE*10/UPRATE > 100)) -eq 1 ]; then
     echo "We limit the downrate to at most 10x the upstream rate to ensure no upstream ACK floods occur which can cause game packet drops"
