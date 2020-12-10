@@ -10,11 +10,20 @@ UPRATE=18000 #change this to your kbps upload speed
 LAN=veth1
 DOWNRATE=65000 #change this to about 80% of your download speed (in kbps)
 
+if [ $((DOWNRATE*10/UPRATE > 100)) -eq 1 ]; then
+    echo "We limit the downrate to at most 10x the upstream rate to ensure no upstream ACK floods occur which can cause game packet drops"
+    DOWNRATE=$((10*UPRATE))
+fi
+
 ## how many kbps of UDP upload and download do you need for your games
 ## across all gaming machines? 
 
-GAMEUP=800
-GAMEDOWN=1600
+## you can tune these yourself, but a good starting point is this
+## formula.  this script will not work for UPRATE less than about
+## 600kbps or downrate less than about 1000kbps
+
+GAMEUP=$((UPRATE*15/100+400))
+GAMEDOWN=$((DOWNRATE*15/100+400))
 
 DSCPSCRIPT="/etc/dscptag.sh"
 
@@ -24,12 +33,6 @@ if [ ! -f $DSCPSCRIPT ]; then
     cd /etc/
     wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
     cd $workdir
-fi
-
-
-if [ $((DOWNRATE*10/UPRATE > 100)) -eq 1 ]; then
-    echo "We limit the downrate to at most 10x the upstream rate to ensure no upstream ACK floods occur which can cause game packet drops"
-    DOWNRATE=$((10*UPRATE))
 fi
 
 

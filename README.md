@@ -2,7 +2,11 @@
 # Router custom QoS script: SimpleHFSCgamerscript.sh
 
 SimpleHFSCgamerscript.sh is a shell script that will set up highly
-responsive QoS for a wired router with a single LAN on OpenWrt
+responsive QoS for a wired router with a single LAN on OpenWrt. It is
+important that you use a single ethernet device for your LAN, not a
+bridge with wifi, otherwise this script will not see all packets
+coming down from the internet as it only regulates ONE lan device and
+a bridge with ethernet and wifi contains two devices.
 
 - log into your OpenWrt router
 - cd /etc
@@ -41,7 +45,10 @@ so it starts at boot.
 This script sets up a HFSC queue system on your WAN and LAN ethernet
 interfaces. It offers 5 classes of traffic. The most important class
 is 1:11 which is for use by realtime UDP traffic to and from a list of
-gaming machines which is set by you.
+gaming machines which is set by you. Packets with DSCP tags CS5, CS6,
+CS7 will be sent to the realtime queue. Later when QFQ is available on
+OpenWrt we may enable sub-prioritizing these, such as making game
+packets more important than in-game VOIP or things like that.
 
 The remaining classes 1:12, 1:13, 1:14, 1:15 are non-realtime but have
 different bandwidth and latency behavior when there is contention. You
@@ -57,27 +64,27 @@ All "normal" classes will use all available bandwidth if they are the
 only class using bandwidth. The realtime class will only use at most
 GAMEUP or GAMEDOWN.
 
+In general for high speed connections the realtime bandwidth should be
+around 10-15% of your bandwidth or less... But when your connections
+are slow, we need them to be at least what the game actually needs. As
+a guideline, Call Of Duty used about 160kbps upstream and 320kbps
+downstream, so a good baseline is about double that each direction. By
+default we do something smart but you can adjust the script if needed,
+depending on the game you play.
+
 This script will limit your download to at most 10x your upload, this
 is to avoid flooding your upload with ACK packets that compete with
-your gaming. For slow speed connections below 3Mbps, it also does MSS
-clamping to encourage your TCP streams to use 540 byte packets to
-reduce the "lumpiness" of your queue thereby reducing jitter and
-dropped packets.
+your gaming during large downloads by other devices. For slow speed
+connections below 3Mbps, it also does MSS clamping to encourage your
+TCP streams to use 540 byte packets to reduce the "lumpiness" of your
+queue thereby reducing jitter and dropped packets.
 
 This should allow you to game on a shared line down to in the range of
-700kbps, however of course having higher speed connections will in
-general be better. A 3000kbps connection and above should have
-absolutely fluid gaming traffic with proper tuning of the settings.
-
-In general as you go to higher speeds, you can reserve 10-15% of your
-bandwidth for "gaming" queue, without major problems. So if you have
-20Mbps upload you can reserve 2000 or 3000 for GAMEUP... similarly for
-GAMEDOWN.
-
-When you have lower speeds, it's still recommended to keep GAMEUP
-greater than 500 and GAMEDOWN greater than 1500. If you have speeds
-below 700kbps do not expect to be able to play games, but you can try
-by careful tuning.  
+700kbps upstream, however of course having higher speed connections
+will in general be better. A 3000kbps connection and above should have
+absolutely fluid gaming traffic with proper tuning of the
+settings. Testers have successfully played with fluid gaming on
+16000kbps down / 830kbps up DSL lines.
 
 
 # Router performance analysis scripts (other scripts in this github)
