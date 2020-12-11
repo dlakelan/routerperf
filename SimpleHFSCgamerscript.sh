@@ -149,6 +149,7 @@ highrate=$((RATE*90/100))
 lowrate=$((RATE*10/100))
 gamerate=$3
 useqdisc=$4
+DIR=$5
 
 
 tc qdisc del dev "$DEV" root > /dev/null
@@ -171,10 +172,16 @@ if [ $DUR -lt 25 ]; then
     DUR=25
 fi
 
+# if we're on the LAN side, create a queue just for traffic from the
+# router, like LUCI and DNS lookups
+if [ $DIR = "lan" ]; then
+    tc class add dev "$DEV" parent 1: classid 1:2 hfsc ls m1 50000kbit d "${DUR}ms" m2 10000kbit
+fi
 
 
 #limit the link overall:
 tc class add dev "$DEV" parent 1: classid 1:1 hfsc ls m2 "${RATE}kbit" ul m2 "${RATE}kbit"
+
 
 # high prio realtime class
 tc class add dev "$DEV" parent 1:1 classid 1:11 hfsc rt m1 "$((RATE*90/100))kbit" d "${DUR}ms" m2 "${gamerate}kbit"
@@ -257,10 +264,10 @@ fi
 }
 
 
-setqdisc $WAN $UPRATE $GAMEUP $gameqdisc
+setqdisc $WAN $UPRATE $GAMEUP $gameqdisc wan
 
 ## uncomment this to do the download direction via output of LAN
-setqdisc $LAN $DOWNRATE $GAMEDOWN $gameqdisc
+setqdisc $LAN $DOWNRATE $GAMEDOWN $gameqdisc lan
 
 ## we want to classify packets, so use these rules
 
@@ -293,7 +300,9 @@ if [ "$cont" = "y" ]; then
     source $DSCPSCRIPT
     
     ipt64 -t mangle -A POSTROUTING -j CLASSIFY --set-class 1:13 # default everything to 1:13,  the "normal" qdisc
-    
+
+    # traffic from the router to the LAN bypasses the download queue
+    ipt64 -t mangle -A POSTROUTING -i lo -o $LAN -j CLASSIFY --set-class 1:2
     
     ## these dscp values go to realtime: EF, CS5, CS6, CS7
     ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class EF -j CLASSIFY --set-class 1:11
