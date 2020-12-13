@@ -184,7 +184,7 @@ tc class add dev "$DEV" parent 1: classid 1:1 hfsc ls m2 "${RATE}kbit" ul m2 "${
 
 
 # high prio realtime class
-tc class add dev "$DEV" parent 1:1 classid 1:11 hfsc rt m1 "$((RATE*90/100))kbit" d "${DUR}ms" m2 "${gamerate}kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:11 hfsc rt m1 "$((RATE*97/100))kbit" d "${DUR}ms" m2 "${gamerate}kbit"
 
 # fast non-realtime
 tc class add dev "$DEV" parent 1:1 classid 1:12 hfsc ls m1 "$((RATE*75/100))kbit" d "${DUR}ms" m2 "$((RATE*30/100))kbit"
@@ -203,12 +203,17 @@ tc class add dev "$DEV" parent 1:1 classid 1:15 hfsc ls m1 "$((RATE*1/100))kbit"
 ## set this to "drr" or "qfq" to differentiate between different game
 ## packets, or use "pfifo" to treat all game packets equally
 
-REDMIN=$((gamerate*30/8)) #30 ms of data
+## games often use a 1/64 s = 15.6ms tick rate +- if we're getting so
+## many packets that it takes that long to drain at full RATE, we're
+## in trouble, because then everything lags by a full tick... so we
+## set our RED minimum to start dropping at 9ms of packets at full
+## line rate, and then drop 100% by 3x that much, it's better to drop
+## packets for a little while than play a whole game lagged by a full
+## tick
 
-if [ $REDMIN -lt 3000 ]; then
-    REDMIN=3000
-fi
-REDMAX=$((REDMIN * 4)) #200ms of data
+REDMIN=$((RATE*9/8)) 
+
+REDMAX=$((REDMIN * 3)) 
 
 
 case $useqdisc in
