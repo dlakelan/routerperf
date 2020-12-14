@@ -48,7 +48,12 @@ ipt4dscp -p udp --dport 53 -j DSCP --set-dscp-class CS4
 ipt4dscp -p udp --sport 53 -j DSCP --set-dscp-class CS4
 
 
-## boost the gaming machines UDP always to CS7 for realtime access
+## boost the gaming machines UDP always to CS7 for realtime access if
+## you have a low total bandwidth so that game/total is definitely
+## above say 0.2, you might prefer to set CS4 here and use a
+## link-share class, which will have a bit more jitter, but may enable
+## you to drain backlogs faster
+
 ipt4dscp -p udp -m set --match-set "${GAMINGIPSET4}" src -j DSCP --set-dscp-class CS7
 ipt4dscp -p udp -m set --match-set "${GAMINGIPSET4}" dst -j DSCP --set-dscp-class CS7
 
