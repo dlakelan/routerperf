@@ -44,7 +44,9 @@ fi
 
 gameqdisc="red"
 
-if [ $gameqdisc != "red" ]; then
+#gameqdisc="pfifo"
+
+if [ $gameqdisc != "red" && $gameqdisc != "pfifo" ]; then
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
     gameqdisc="red"
 fi
@@ -242,8 +244,10 @@ case $useqdisc in
 
     ;;
 
-    *)
-
+    "pfifo")
+	tc qdisc add dev "$DEV" parent 1:11 handle 10: pfifo limit $((4+9*RATE/8))
+	;;
+    "red")
 	tc qdisc add dev "$DEV" parent 1:11 handle 10: red limit 150000 min $REDMIN max $REDMAX avpkt 500 bandwidth ${RATE}kbit  probability 1.0
 	## send game packets to 10:, they're all treated the same
 	
@@ -322,14 +326,18 @@ if [ "$cont" = "y" ]; then
     ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS2 -j CLASSIFY --set-class 1:14
     ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS1 -j CLASSIFY --set-class 1:15
     
+    case $gameqdisc in
+	"red")
+	;;
+	"pfifo")
+	;;
+	*)
+	    echo "YOU MUST PLACE CLASSIFIERS FOR YOUR GAME TRAFFIC HERE"
+	    echo "SEND GAME TRAFFIC TO 2:1 (high) or 2:2 (medium) or 2:3 (normal)"
+	    echo "Requires use of tc filters! -j CLASSIFY won't work!"
+	    ;;
+    esac
     
-    if [ "$gameqdisc" = "red" ]; then
-	echo "Everything is taken care of for RED qdisc"
-    else
-	echo "YOU MUST PLACE CLASSIFIERS FOR YOUR GAME TRAFFIC HERE"
-	echo "SEND GAME TRAFFIC TO 2:1 (high) or 2:2 (medium) or 2:3 (normal)"
-	echo "Requires use of tc filters! -j CLASSIFY won't work!"
-    fi
 
     if [ $UPRATE -lt 5000 -a $((DOWNRATE*10/UPRATE > 45)) -eq 1 ]; then
 	## we need to trim acks in the upstream direction, we let
