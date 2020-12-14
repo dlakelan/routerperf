@@ -46,7 +46,7 @@ gameqdisc="red"
 
 #gameqdisc="pfifo"
 
-if [ $gameqdisc != "red" && $gameqdisc != "pfifo" ]; then
+if [ $gameqdisc != "red" -a $gameqdisc != "pfifo" ]; then
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
     gameqdisc="red"
 fi
