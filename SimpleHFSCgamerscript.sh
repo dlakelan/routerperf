@@ -245,7 +245,7 @@ case $useqdisc in
     ;;
 
     "pfifo")
-	tc qdisc add dev "$DEV" parent 1:11 handle 10: pfifo limit $((4+9*RATE/8))
+	tc qdisc add dev "$DEV" parent 1:11 handle 10: pfifo limit $((4+9*RATE/8/500))
 	;;
     "red")
 	tc qdisc add dev "$DEV" parent 1:11 handle 10: red limit 150000 min $REDMIN max $REDMAX avpkt 500 bandwidth ${RATE}kbit  probability 1.0
