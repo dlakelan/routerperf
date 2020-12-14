@@ -307,7 +307,7 @@ if [ "$cont" = "y" ]; then
     ipt64 -t mangle -A POSTROUTING -j CLASSIFY --set-class 1:13 # default everything to 1:13,  the "normal" qdisc
 
     # traffic from the router to the LAN bypasses the download queue
-    ipt64 -t mangle -A POSTROUTING -i lo -o $LAN -j CLASSIFY --set-class 1:2
+    ipt64 -t mangle -A OUTPUT -j CLASSIFY --set-class 1:2
     
     ## these dscp values go to realtime: EF, CS5, CS6, CS7
     ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class EF -j CLASSIFY --set-class 1:11
