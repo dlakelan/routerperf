@@ -67,7 +67,7 @@ ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" dst -j DSCP --set-dscp-clas
 ## unlikely to be gaming traffic, more likely QUIC), comment this out
 ## if you want, or change to CS1 to further down-priority
 
-ipt64dscp -p udp -m dscp --dscp-class CS7 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-above 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
+ipt4dscp -p udp -m dscp --dscp-class CS7 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name udpbulk4 --hashlimit-above 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
 
 ## some games use TCP, let's match on TCP streams using less than
 ## 150pps this probably is interactive rather than a bulk
@@ -75,10 +75,11 @@ ipt64dscp -p udp -m dscp --dscp-class CS7 -m hashlimit --hashlimit-mode srcip,sr
 ## really the start of a big download. Only turn this on if you play a
 ## game that you know uses TCP, such as apparently FIFA
 
-#ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
+#ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
 
-#ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
+#ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
 
-#ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
+#ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
 
-#ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
+#ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-below 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS7
+
