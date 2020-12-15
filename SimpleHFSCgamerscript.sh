@@ -350,7 +350,7 @@ if [ "$cont" = "y" ]; then
 	ipt64 -A forwarding_rule -p tcp -m tcp --tcp-flags ACK ACK -o $WAN  -m length --length 0:100 -m statistic --mode random --probability .90 -j DROP
     fi
 
-    iptables -t mangle -F FORWARD # to flush the openwrt default MSS clamping rule
+
     if [ $UPRATE -lt 3000 ]; then
 	ipt64 -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o $LAN -j TCPMSS --set-mss 540
     fi
