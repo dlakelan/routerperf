@@ -299,7 +299,6 @@ if [ "$cont" = "y" ]; then
     ipt64 -t mangle -N dscptag
     ipt64 -t mangle -F dscptag
     
-    ipt64 -t mangle -A FORWARD -j dscptag
     
     if [ "$WASHDSCPUP" = "yes" ]; then
 	ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
@@ -308,6 +307,7 @@ if [ "$cont" = "y" ]; then
 	ipt64 -t mangle -A FORWARD -i $WAN -j DSCP --set-dscp-class CS0
     fi
 
+    ipt64 -t mangle -A FORWARD -j dscptag
     source $DSCPSCRIPT
     
     ipt64 -t mangle -A FORWARD -j CLASSIFY --set-class 1:13 # default everything to 1:13,  the "normal" qdisc
