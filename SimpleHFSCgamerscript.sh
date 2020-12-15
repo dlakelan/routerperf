@@ -1,3 +1,4 @@
+
 #!/bin/sh
 
 ## "atm" for old-school DSL or change to "DOCSIS" for cable modem, or
@@ -283,7 +284,7 @@ setqdisc $LAN $DOWNRATE $GAMEDOWN $gameqdisc lan
 cat <<EOF
 
 We are going to add classification rules via iptables to the
-POSTROUTING chain. You should actually read and ensure that these
+FORWARD chain. You should actually read and ensure that these
 rules make sense in your firewall before running this script. 
 
 Continue? (type y or n and then RETURN/ENTER)
@@ -293,11 +294,12 @@ read -r cont
 
 if [ "$cont" = "y" ]; then
 
-    ipt64 -t mangle -F POSTROUTING
+    ipt64 -t mangle -F FORWARD
 
     ipt64 -t mangle -N dscptag
+    ipt64 -t mangle -F dscptag
     
-    ipt64 -t mangle -A POSTROUTING -j dscptag
+    ipt64 -t mangle -A FORWARD -j dscptag
     
     if [ "$WASHDSCPUP" = "yes" ]; then
 	ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
@@ -308,23 +310,23 @@ if [ "$cont" = "y" ]; then
 
     source $DSCPSCRIPT
     
-    ipt64 -t mangle -A POSTROUTING -j CLASSIFY --set-class 1:13 # default everything to 1:13,  the "normal" qdisc
+    ipt64 -t mangle -A FORWARD -j CLASSIFY --set-class 1:13 # default everything to 1:13,  the "normal" qdisc
 
     # traffic from the router to the LAN bypasses the download queue
     ipt64 -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:2
     
     ## these dscp values go to realtime: EF, CS5, CS6, CS7
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class EF -j CLASSIFY --set-class 1:11
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS5 -j CLASSIFY --set-class 1:11
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS6 -j CLASSIFY --set-class 1:11
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS7 -j CLASSIFY --set-class 1:11
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class EF -j CLASSIFY --set-class 1:11
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS5 -j CLASSIFY --set-class 1:11
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS6 -j CLASSIFY --set-class 1:11
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS7 -j CLASSIFY --set-class 1:11
     
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS4 -j CLASSIFY --set-class 1:12
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF41 -j CLASSIFY --set-class 1:12
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF42 -j CLASSIFY --set-class 1:12
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS4 -j CLASSIFY --set-class 1:12
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class AF41 -j CLASSIFY --set-class 1:12
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class AF42 -j CLASSIFY --set-class 1:12
     
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS2 -j CLASSIFY --set-class 1:14
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS1 -j CLASSIFY --set-class 1:15
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS2 -j CLASSIFY --set-class 1:14
+    ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS1 -j CLASSIFY --set-class 1:15
     
     case $gameqdisc in
 	"red")
