@@ -42,11 +42,13 @@ fi
 ## be aware not all machines will have drr or qfq available
 ## also qfq or drr require setting up tc filters!
 
-gameqdisc="red"
+gameqdisc="netem"
+
+netemdelayms="20"
 
 #gameqdisc="pfifo"
 
-if [ $gameqdisc != "red" -a $gameqdisc != "pfifo" ]; then
+if [ $gameqdisc != "red" -a $gameqdisc != "pfifo" -a $gameqdisc != "netem" ]; then
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
     gameqdisc="red"
 fi
@@ -250,8 +252,10 @@ case $useqdisc in
     "red")
 	tc qdisc add dev "$DEV" parent 1:11 handle 10: red limit 150000 min $REDMIN max $REDMAX avpkt 500 bandwidth ${RATE}kbit  probability 1.0
 	## send game packets to 10:, they're all treated the same
-	
-    ;;
+	;;
+    "netem")
+	tc qdisc add dev "$DEV" parent 1:11 handle 10: netem limit $((4+9*RATE/8/500)) delay "${netemdelayms}ms"
+	;;
 esac
 
 INTVL=$((100+2*1500*8/RATE))
