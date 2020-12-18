@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 ## "atm" for old-school DSL or change to "DOCSIS" for cable modem, or
