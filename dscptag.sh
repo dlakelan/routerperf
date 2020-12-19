@@ -80,11 +80,11 @@ ipt4dscp -p udp -m dscp --dscp-class CS5 -m hashlimit --hashlimit-mode srcip,src
 ## really the start of a big download. Only turn this on if you play a
 ## game that you know uses TCP, such as apparently FIFA
 
-#ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
+ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
 
-#ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
+ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
 
-#ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
+ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
 
-#ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
+ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS5
 
