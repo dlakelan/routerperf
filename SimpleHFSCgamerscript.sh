@@ -28,6 +28,12 @@ fi
 GAMEUP=$((UPRATE*15/100+400))
 GAMEDOWN=$((DOWNRATE*15/100+400))
 
+## you can try setting GAMEUP and GAMEDOWN manually, some report this
+## works well for CoD
+#GAMEUP=400
+#GAMEDOWN=800
+
+
 DSCPSCRIPT="/etc/dscptag.sh"
 
 if [ ! -f $DSCPSCRIPT ]; then
