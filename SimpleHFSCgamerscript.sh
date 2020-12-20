@@ -37,10 +37,11 @@ fi
 
 
 
-## set this to "red" or if you want to differentiate between game
-## packets into 3 different classes you can use either "drr" or "qfq"
-## be aware not all machines will have drr or qfq available
-## also qfq or drr require setting up tc filters!
+## Right now there are three possible leaf qdiscs: pfifo, red, or
+## netem. If you use netem it's so you can intentionally add delay to
+## your packets, set netemdelayms to the number of ms you want to add
+## each direction. Our default is pfifo it is reported to be the best
+## for use in the realtime queue
 
 #gameqdisc="netem"
 
