@@ -330,6 +330,13 @@ if [ "$cont" = "y" ]; then
     
     ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS2 -j CLASSIFY --set-class 1:14
     ipt64 -t mangle -A FORWARD -m dscp --dscp-class CS1 -j CLASSIFY --set-class 1:15
+
+    ## wash DSCP out to the ISP now that we used it for classifying
+
+    if [ "$WASHDSCPUP" = "yes" ]; then
+	ipt64 -t mangle -A FORWARD -o $WAN -j DSCP --set-dscp-class CS0
+    fi
+
     
     case $gameqdisc in
 	"red")
