@@ -61,24 +61,15 @@ ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" src -j DSCP --set-dscp-clas
 ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" dst -j DSCP --set-dscp-class CS5
 
 
-## If you game on a line with not quite enough bandwidth to accomodate
-## both gaming and in-game VOIP, and you use a PS4, you can downgrade
-## the in-game VOIP to get better hitreg etc: to downgrade VOIP from
-## the gaming machine to high priority non-realtime uncomment this:
-
-#ipt4dscp -p udp ! --sport 3074 -m set --match-set "${GAMINGIPSET4}" src -j DSCP --set-dscp-class CS4
-
-## downgrade UDP tagged CS5 that sends more than 150 pps (seems
+## downgrade UDP tagged CS5 that sends more than 200 pps (seems
 ## unlikely to be gaming traffic, more likely QUIC), comment this out
 ## if you want, or change to CS1 to further down-priority
 
-ipt4dscp -p udp -m dscp --dscp-class CS5 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name udpbulk4 --hashlimit-above 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
+ipt4dscp -p udp -m dscp --dscp-class CS5 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name udpbulk4 --hashlimit-above 200/second --hashlimit-burst 200 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
 
 ## some games use TCP, let's match on TCP streams using less than
 ## 150pps this probably is interactive rather than a bulk
-## transfer. This may ruin your game play for a few seconds if it's
-## really the start of a big download. Only turn this on if you play a
-## game that you know uses TCP, such as apparently FIFA
+## transfer.
 
 ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
 
