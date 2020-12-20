@@ -42,11 +42,11 @@ fi
 ## be aware not all machines will have drr or qfq available
 ## also qfq or drr require setting up tc filters!
 
-gameqdisc="netem"
+#gameqdisc="netem"
 
-netemdelayms="20"
+#netemdelayms="20"
 
-#gameqdisc="pfifo"
+gameqdisc="pfifo"
 
 if [ $gameqdisc != "red" -a $gameqdisc != "pfifo" -a $gameqdisc != "netem" ]; then
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
