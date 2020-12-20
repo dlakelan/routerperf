@@ -10,9 +10,12 @@ UPRATE=18000 #change this to your kbps upload speed
 LAN=veth1
 DOWNRATE=65000 #change this to about 80% of your download speed (in kbps)
 
-if [ $((DOWNRATE*10/UPRATE > 100)) -eq 1 ]; then
-    echo "We limit the downrate to at most 10x the upstream rate to ensure no upstream ACK floods occur which can cause game packet drops"
-    DOWNRATE=$((10*UPRATE))
+BWMAXRATIO=10 ## prevent ack floods by limiting download to at most
+	      ## upload times this amount... ratio somewhere between 10 and 20 probably optimal
+
+if [ $((DOWNRATE > UPRATE*BWMAXRATIO)) -eq 1 ]; then
+    echo "We limit the downrate to at most $BWMAXRATIO times the upstream rate to ensure no upstream ACK floods occur which can cause game packet drops"
+    DOWNRATE=$((BWMAXRATIO*UPRATE))
 fi
 
 ## how many kbps of UDP upload and download do you need for your games
