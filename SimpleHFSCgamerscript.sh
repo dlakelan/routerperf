@@ -68,10 +68,18 @@ GAMINGIPSET6="realtimeset6"
 
 ## set up your ipsets here:
 
-ipset del realtimeset4 > /dev/null 2>&1
-ipset del realtimeset6 > /dev/null 2>&1
-ipset create realtimeset4 hash:ip || echo "ERROR: could not create realtimeset4 do you have ipsets working?"
-ipset create realtimeset6 hash:ip family inet6 || echo "ERROR: could not create realtimeset6 do you have ipsets working?"
+## get rid of any references to the ipsets
+iptables -t mangle -F dscptag > /dev/null 2>&1
+
+ipset destroy realtimeset4 > /dev/null 2>&1
+ipset destroy realtimeset6 > /dev/null 2>&1
+
+ipset create realtimeset4 hash:ip > /dev/null 2>&1
+ipset create realtimeset6 hash:ip family inet6 > /dev/null 2>&1
+
+# just in case we weren't able to delete them, at least flush them
+ipset flush realtimeset4 > /dev/null 2>&1
+ipset flush realtimeset6 > /dev/null 2>&1
 
 ## some examples to add your gaming devices to the realtime sets,
 ## allows you to have more than one console etc. Just add your ips
