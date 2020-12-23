@@ -27,7 +27,8 @@ if [ $((DOWNRATE*10/UPRATE > 60)) -eq 1 ] ; then
 
     ## allow up to 4 binary divisions of ack packets (16x reduction)
     ## while they remain over 200/second for each flow so it will cut
-    ## 3200 acks/second down to 200
+    ## 3200 acks/second down to 200, but always let through at least
+    ## 100/s for each flow
     ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter1 hashlimit-above 200/second --hashlimit-burst 200 --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
     ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter2 hashlimit-above 200/second --hashlimit-burst 200 --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
     ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter3 hashlimit-above 200/second --hashlimit-burst 200 --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
