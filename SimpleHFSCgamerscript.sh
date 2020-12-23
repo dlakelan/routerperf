@@ -367,8 +367,8 @@ if [ "$cont" = "y" ]; then
 	    echo "Requires use of tc filters! -j CLASSIFY won't work!"
 	    ;;
     esac
-     
-
+    
+    
     if [ $UPRATE -lt 3000 ]; then
 	ipt64 -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o $LAN -j TCPMSS --set-mss 540
     fi

@@ -22,6 +22,15 @@ ipt64dscp -p tcp -m multiport --sports "$TCPBULKPT" -j DSCP --set-dscp-class CS1
 ipt64dscp -p tcp -m multiport --dports "$TCPBULKPT" -j DSCP --set-dscp-class CS1
 
 
+
+if [ $((DOWNRATE*10/UPRATE > 60)) -eq 1 ] ; then
+    ## down prioritize ACKS under 100 bytes heading out the WAN so that
+    ## game packets can more easily fit between these ack floods
+    ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100  -j DSCP --set-dscp-class CS2
+fi
+
+
+
 ## boost jitsi meet udp to CS4, if you have the bandwidth you can
 ## boost these video conferences to CS5 and make it realtime, but then
 ## it can interfere with other realtime/game. Often CS4 will be enough
