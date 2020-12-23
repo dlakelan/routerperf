@@ -10,8 +10,10 @@ UPRATE=18000 #change this to your kbps upload speed
 LAN=veth1
 DOWNRATE=65000 #change this to about 80% of your download speed (in kbps)
 
-BWMAXRATIO=10 ## prevent ack floods by limiting download to at most
-	      ## upload times this amount... ratio somewhere between 10 and 20 probably optimal
+BWMAXRATIO=20 ## prevent ack floods by limiting download to at most
+	      ## upload times this amount... ratio somewhere between
+	      ## 10 and 20 probably optimal. we down-prioritize
+	      ## certain ACKs to reduce the chance of a flood as well.
 
 if [ $((DOWNRATE > UPRATE*BWMAXRATIO)) -eq 1 ]; then
     echo "We limit the downrate to at most $BWMAXRATIO times the upstream rate to ensure no upstream ACK floods occur which can cause game packet drops"
