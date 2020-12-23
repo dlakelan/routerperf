@@ -30,13 +30,13 @@ ipt64dscp -p tcp -m multiport --dports "$TCPBULKPT" -j DSCP --set-dscp-class CS1
 ## acks/second which should normally be plenty? That's one ack every
 ## 10ms, but if not we can maybe tune this up a little
 
-ackrate=200
+ackrate=300
 
 ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter1 --hashlimit-above "${ackrate}/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
-ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter2 --hashlimit-above "${ackrate}/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
-ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter3 --hashlimit-above "${ackrate}/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
-ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter4 --hashlimit-above "${ackrate}/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
-ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter5 --hashlimit-above "${ackrate}/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
+ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter2 --hashlimit-above "$((ackrate*2))/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
+ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter3 --hashlimit-above "$((ackrate*4))/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
+ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter4 --hashlimit-above "$((ackrate*8))/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
+ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name ackfilter5 --hashlimit-above "$((ackrate*16))/second" --hashlimit-burst $ackrate --hashlimit-rate-match --hashlimit-rate-interval 1 -m statistic --mode random --probability .5 -j DROP
 
 
 
