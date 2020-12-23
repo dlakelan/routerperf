@@ -174,7 +174,7 @@ useqdisc=$4
 DIR=$5
 
 
-tc qdisc del dev "$DEV" root > /dev/null
+tc qdisc del dev "$DEV" root > /dev/null 2>&1
 
 case $LINKTYPE in
     "atm")
@@ -367,17 +367,7 @@ if [ "$cont" = "y" ]; then
 	    echo "Requires use of tc filters! -j CLASSIFY won't work!"
 	    ;;
     esac
-    
-
-    if [ $UPRATE -lt 5000 -a $((DOWNRATE*10/UPRATE > 45)) -eq 1 ]; then
-	## we need to trim acks in the upstream direction, we let
-	## through a certain number based on download rate and 540
-	## byte MSS, then drop 90% of the rest:
-	ACKRATE=$((DOWNRATE*1000/8/540*150/100))
-	ipt64 -A forwarding_rule -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 0:100 -m limit --limit ${ACKRATE}/second --limit-burst ${ACKRATE} -j ACCEPT
-	ipt64 -A forwarding_rule -p tcp -m tcp --tcp-flags ACK ACK -o $WAN  -m length --length 0:100 -m statistic --mode random --probability .90 -j DROP
-    fi
-
+     
 
     if [ $UPRATE -lt 3000 ]; then
 	ipt64 -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o $LAN -j TCPMSS --set-mss 540
