@@ -80,11 +80,11 @@ ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" src -j DSCP --set-dscp-clas
 ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" dst -j DSCP --set-dscp-class CS5
 
 
-## downgrade UDP tagged CS5 that sends more than 200 pps (seems
+## downgrade UDP tagged CS5 that sends more than 450 pps (seems
 ## unlikely to be gaming traffic, more likely QUIC), comment this out
 ## if you want, or change to CS1 to further down-priority
 
-ipt4dscp -p udp -m dscp --dscp-class CS5 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name udpbulk4 --hashlimit-above 200/second --hashlimit-burst 200 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
+ipt4dscp -p udp -m dscp --dscp-class CS5 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name udpbulk4 --hashlimit-above 450/second --hashlimit-burst 450 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
 
 ## some games use TCP, let's match on TCP streams using less than
 ## 150pps this probably is interactive rather than a bulk
