@@ -54,11 +54,14 @@ fi
 ## each direction. Our default is pfifo it is reported to be the best
 ## for use in the realtime queue
 
+gameqdisc="pfifo"
+
 #gameqdisc="netem"
 
-#netemdelayms="20"
+netemdelayms="10"
+netemjitterms="5"
+netemdist="normal"
 
-gameqdisc="pfifo"
 
 if [ $gameqdisc != "red" -a $gameqdisc != "pfifo" -a $gameqdisc != "netem" ]; then
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
@@ -274,7 +277,7 @@ case $useqdisc in
 	## send game packets to 10:, they're all treated the same
 	;;
     "netem")
-	tc qdisc add dev "$DEV" parent 1:11 handle 10: netem limit $((4+9*RATE/8/500)) delay "${netemdelayms}ms"
+	tc qdisc add dev "$DEV" parent 1:11 handle 10: netem limit $((4+9*RATE/8/500)) delay "${netemdelayms}ms" "${netemjitterms}ms" distribution "$netemdist"
 	;;
 esac
 
