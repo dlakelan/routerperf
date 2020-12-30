@@ -9,6 +9,14 @@ WAN=veth0 # change this to your WAN device name
 UPRATE=18000 #change this to your kbps upload speed
 LAN=veth1
 DOWNRATE=65000 #change this to about 80% of your download speed (in kbps)
+OH=40 # number of bytes of Overhead on your line (37 is reasonable
+      # starting point, better to be too big than too small) probably
+      # likely values are between 20 and 50
+
+PFIFOMIN=5 ## minimum number of packets in pfifo, 4 to 10 is good guess
+PACKETSIZE=350 # bytes per game packet avg (guess, 250 to 500 is likely) 
+MAXDEL=25 # ms we try to keep max delay below for game packets after
+	  # burst 10-25 is good 1 clock tick at 64Hz is ~16ms
 
 BWMAXRATIO=20 ## prevent ack floods by limiting download to at most
 	      ## upload times this amount... ratio somewhere between
@@ -170,7 +178,6 @@ ipt64 (){
 setqdisc () {
 DEV=$1
 RATE=$2
-OH=37
 MTU=1500
 highrate=$((RATE*90/100))
 lowrate=$((RATE*10/100))
@@ -238,9 +245,9 @@ tc class add dev "$DEV" parent 1:1 classid 1:15 hfsc ls m1 "$((RATE*1/100))kbit"
 ## packets for a little while than play a whole game lagged by a full
 ## tick
 
-REDMIN=$((RATE*9/8)) 
+REDMIN=$((RATE*MAXDEL/3/8)) 
 
-REDMAX=$((REDMIN * 3)) 
+REDMAX=$((RATE * MAXDEL/8)) 
 
 
 case $useqdisc in
@@ -270,7 +277,7 @@ case $useqdisc in
     ;;
 
     "pfifo")
-	tc qdisc add dev "$DEV" parent 1:11 handle 10: pfifo limit $((4+9*RATE/8/500))
+	tc qdisc add dev "$DEV" parent 1:11 handle 10: pfifo limit $((PFIFOMIN+MAXDEL*RATE/8/PACKETSIZE))
 	;;
     "red")
 	tc qdisc add dev "$DEV" parent 1:11 handle 10: red limit 150000 min $REDMIN max $REDMAX avpkt 500 bandwidth ${RATE}kbit  probability 1.0
