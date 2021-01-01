@@ -10,11 +10,12 @@ a bridge with ethernet and wifi contains two devices.
 
 - log into your OpenWrt router
 - cd /etc
-- wget https://raw.githubusercontent.com/dlakelan/routerperf/master/SimpleHFSCgamerscript.sh
+- wget --no-check-certificates https://raw.githubusercontent.com/dlakelan/routerperf/master/SimpleHFSCgamerscript.sh
 - chmod a+x /etc/SimpleHFSCgamerscript.sh
-- wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
+- wget --no-check-certificates https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
 - edit SimpleHFSCgamerscript.sh to set your WAN and LAN interfaces, your network speeds, and the speed you reserve for your game (GAMEUP and GAMEDOWN)
 - edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
+- if you want to use netem also grab the files in tc-dists folder and place in /usr/lib/tc on your router
 
 ```
 for ip4 in 192.168.1.111 192.168.1.222; do
