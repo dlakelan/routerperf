@@ -221,16 +221,16 @@ tc class add dev "$DEV" parent 1: classid 1:1 hfsc ls m2 "${RATE}kbit" ul m2 "${
 tc class add dev "$DEV" parent 1:1 classid 1:11 hfsc rt m1 "$((RATE*97/100))kbit" d "${DUR}ms" m2 "${gamerate}kbit"
 
 # fast non-realtime
-tc class add dev "$DEV" parent 1:1 classid 1:12 hfsc ls m1 "$((RATE*75/100))kbit" d "${DUR}ms" m2 "$((RATE*30/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:12 hfsc ls m1 "$((RATE*70/100))kbit" d "${DUR}ms" m2 "$((RATE*30/100))kbit"
 
 # normal
-tc class add dev "$DEV" parent 1:1 classid 1:13 hfsc ls m1 "$((RATE*20/100))kbit" d "${DUR}ms" m2 "$((RATE*50/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:13 hfsc ls m1 "$((RATE*20/100))kbit" d "${DUR}ms" m2 "$((RATE*45/100))kbit"
 
 # low prio
-tc class add dev "$DEV" parent 1:1 classid 1:14 hfsc ls m1 "$((RATE*4/100))kbit" d "${DUR}ms" m2 "$((RATE*15/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:14 hfsc ls m1 "$((RATE*7/100))kbit" d "${DUR}ms" m2 "$((RATE*15/100))kbit"
 
 # bulk
-tc class add dev "$DEV" parent 1:1 classid 1:15 hfsc ls m1 "$((RATE*1/100))kbit" d "${DUR}ms" m2 "$((RATE*5/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:15 hfsc ls m1 "$((RATE*3/100))kbit" d "${DUR}ms" m2 "$((RATE*10/100))kbit"
 
 
 

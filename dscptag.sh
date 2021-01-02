@@ -86,6 +86,26 @@ ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" dst -j DSCP --set-dscp-clas
 
 ipt4dscp -p udp -m dscp --dscp-class CS5 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name udpbulk4 --hashlimit-above 450/second --hashlimit-burst 50 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
 
+
+## movie streaming such as DASH protocol opens a connection and jams
+## packets in it and then closes it, this causes potentially big
+## problems on slower lines where it might take 100% of download for a
+## few hundred milliseconds, but we can identify it because they're
+## short lived...
+
+## on the other hand, this might also cause problems for browsing as
+## it will down-prioritize the first few seconds of transfer ... it's
+## experimental
+
+# down prioritize downloads with less than 500ms of transfer to CS2
+ipt64dscp -p tcp -m connbytes --connbytes 0:$((DOWNRATE*500/8)) --connbytes-dir reply --connbytes-mode bytes -j DSCP --set-dscp-class CS2
+
+# big transfers can be identified by their transferred bytes:
+
+# down prioritize downloads that have transferred more than 10 seconds worth of packets
+ipt64dscp -p tcp -m connbytes --connbytes $((DOWNRATE*10000/8)) --connbytes-dir reply --connbytes-mode bytes -j DSCP --set-dscp-class CS1
+
+
 ## some games use TCP, let's match on TCP streams using less than
 ## 150pps this probably is interactive rather than a bulk
 ## transfer.
