@@ -86,7 +86,7 @@ done
 for proto in udp tcp ; do
     for dir in src dst ; do 
 	ipt4dscp -p $proto -m set --match-set "lowprioset4" $dir -j DSCP --set-dscp-class CS2
-	ipt6dscp -p $proto -m set --match-set "lowprioset4" $dir -j DSCP --set-dscp-class CS2
+	ipt6dscp -p $proto -m set --match-set "lowprioset6" $dir -j DSCP --set-dscp-class CS2
     done
 done
 
