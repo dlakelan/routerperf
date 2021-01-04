@@ -61,6 +61,13 @@ ipt64dscp -p udp -m multiport --dports 19302:19309 -j DSCP --set-dscp-class CS4
 ipt64dscp -p udp --dport 9000 -j DSCP --set-dscp-class CS4
 ipt64dscp -p udp --sport 9000 -j DSCP --set-dscp-class CS4
 
+## boost teamviewer to CS4
+
+ipt64dscp -p udp --dport 5938 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp --sport 5938 -j DSCP --set-dscp-class CS4
+ipt64dscp -p tcp --dport 5938 -j DSCP --set-dscp-class CS4
+ipt64dscp -p tcp --sport 5938 -j DSCP --set-dscp-class CS4
+
 
 ## boost DNS traffic
 ipt4dscp -p udp --dport 53 -j DSCP --set-dscp-class CS4
