@@ -73,28 +73,62 @@ ipt4dscp -p udp --sport 53 -j DSCP --set-dscp-class CS4
 ## link-share class, which will have a bit more jitter, but may enable
 ## you to drain backlogs faster
 
-ipt4dscp -p udp -m set --match-set "${GAMINGIPSET4}" src -j DSCP --set-dscp-class CS5
-ipt4dscp -p udp -m set --match-set "${GAMINGIPSET4}" dst -j DSCP --set-dscp-class CS5
 
-ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" src -j DSCP --set-dscp-class CS5
-ipt6dscp -p udp -m set --match-set "${GAMINGIPSET6}" dst -j DSCP --set-dscp-class CS5
+for dir in src dst ; do 
+    ipt4dscp -p udp -m set --match-set "realtimeset4" $dir -j DSCP --set-dscp-class CS5
+    ipt6dscp -p udp -m set --match-set "realtimeset6" $dir -j DSCP --set-dscp-class CS5
+done
+
+
+
+#down prioritize low priority machines, tcp and udp:
+
+for proto in udp tcp ; do
+    for dir in src dst ; do 
+	ipt4dscp -p $proto -m set --match-set "lowprioset4" $dir -j DSCP --set-dscp-class CS2
+	ipt6dscp -p $proto -m set --match-set "lowprioset6" $dir -j DSCP --set-dscp-class CS2
+    done
+done
 
 
 ## downgrade UDP tagged CS5 that sends more than 450 pps (seems
 ## unlikely to be gaming traffic, more likely QUIC), comment this out
 ## if you want, or change to CS1 to further down-priority
 
+# if your game "likes" when you have low bandwidth, this can cause you
+# to "escape" the bandwidth limits, so comment it out
+
 ipt4dscp -p udp -m dscp --dscp-class CS5 -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name udpbulk4 --hashlimit-above 450/second --hashlimit-burst 50 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS2
+
+
+## movie streaming such as DASH protocol opens a connection and jams
+## packets in it and then closes it, this causes potentially big
+## problems on slower lines where it might take 100% of download for a
+## few hundred milliseconds, but we can identify it because they're
+## short lived...
+
+## on the other hand, this might also cause problems for browsing as
+## it will down-prioritize the first few seconds of transfer ... it's
+## experimental
+
+# down prioritize downloads with less than 500ms of transfer to CS2
+ipt64dscp -p tcp -m connbytes --connbytes 0:$((DOWNRATE*500/8)) --connbytes-dir reply --connbytes-mode bytes -j DSCP --set-dscp-class CS2
+
+# big transfers can be identified by their transferred bytes:
+
+# down prioritize downloads that have transferred more than 10 seconds worth of packets
+ipt64dscp -p tcp -m connbytes --connbytes $((DOWNRATE*10000/8)) --connbytes-dir reply --connbytes-mode bytes -j DSCP --set-dscp-class CS1
+
 
 ## some games use TCP, let's match on TCP streams using less than
 ## 150pps this probably is interactive rather than a bulk
 ## transfer.
 
-ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
+ipt4dscp -p tcp -m set --match-set "realtimeset4" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
 
-ipt4dscp -p tcp -m set --match-set "${GAMINGIPSET4}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
+ipt4dscp -p tcp -m set --match-set "realtimeset4" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio4 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
 
-ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
+ipt6dscp -p tcp -m set --match-set "realtimeset6" src  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
 
-ipt6dscp -p tcp -m set --match-set "${GAMINGIPSET6}" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
+ipt6dscp -p tcp -m set --match-set "realtimeset6" dst  -m hashlimit --hashlimit-mode srcip,srcport,dstip,dstport --hashlimit-name tcphighprio6 --hashlimit-upto 150/second --hashlimit-burst 150 --hashlimit-rate-match --hashlimit-rate-interval 1 -j DSCP --set-dscp-class CS4
 

@@ -56,43 +56,43 @@ fi
 
 
 
-## Right now there are three possible leaf qdiscs: pfifo, red, or
-## netem. If you use netem it's so you can intentionally add delay to
-## your packets, set netemdelayms to the number of ms you want to add
-## each direction. Our default is pfifo it is reported to be the best
-## for use in the realtime queue
+## Right now there are four possible leaf qdiscs: pfifo, red,
+## fq_codel, or netem. If you use netem it's so you can intentionally
+## add delay to your packets, set netemdelayms to the number of ms you
+## want to add each direction. Our default is pfifo it is reported to
+## be the best for use in the realtime queue
 
 gameqdisc="pfifo"
 
 #gameqdisc="netem"
 
-netemdelayms="10"
-netemjitterms="5"
+netemdelayms="1"
+netemjitterms="7"
 netemdist="normal"
 
 
-if [ $gameqdisc != "red" -a $gameqdisc != "pfifo" -a $gameqdisc != "netem" ]; then
+if [ $gameqdisc != "fq_codel" -a $gameqdisc != "red" -a $gameqdisc != "pfifo" -a $gameqdisc != "netem" ]; then
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
     gameqdisc="red"
 fi
-
-GAMINGIPSET4="realtimeset4"
-GAMINGIPSET6="realtimeset6"
 
 ## set up your ipsets here:
 
 ## get rid of any references to the ipsets
 iptables -t mangle -F dscptag > /dev/null 2>&1
 
-ipset destroy realtimeset4 > /dev/null 2>&1
-ipset destroy realtimeset6 > /dev/null 2>&1
 
-ipset create realtimeset4 hash:ip > /dev/null 2>&1
-ipset create realtimeset6 hash:ip family inet6 > /dev/null 2>&1
+for set in realtimeset4 lowprioset4  ; do
+    ipset destroy $set > /dev/null 2>&1
+    ipset create $set hash:ip > /dev/null 2>&1
+    ipset flush $set > /dev/null 2>&1
+done
 
-# just in case we weren't able to delete them, at least flush them
-ipset flush realtimeset4 > /dev/null 2>&1
-ipset flush realtimeset6 > /dev/null 2>&1
+for set in realtimeset6 lowprioset6  ; do
+    ipset destroy $set > /dev/null 2>&1
+    ipset create $set hash:ip family inet6 > /dev/null 2>&1
+    ipset flush $set > /dev/null 2>&1
+done
 
 ## some examples to add your gaming devices to the realtime sets,
 ## allows you to have more than one console etc. Just add your ips
@@ -105,6 +105,25 @@ done
 for ip6 in 2001:db8::1 2001:db8::2 ; do
     ipset add realtimeset6 "$ip6"
 done
+
+
+### add ips of "low priority" machines, examples might include things
+### that interfere with more important stuff, like gaming ;-). For
+### example 4k TVs will typically buffer big chunks of data which can
+### cause gaming stuttering but because they have buffers they don't
+### really need super high priority
+
+
+
+for ip4 in 192.168.1.111 192.168.1.222; do
+    ipset add lowprioset4 "$ip4"
+done
+
+for ip6 in 2001:db8::1 2001:db8::2 ; do
+    ipset add lowprioset6 "$ip6"
+done
+
+
 
 
 ## Help the system prioritize your gaming by telling it what is bulk
@@ -221,16 +240,16 @@ tc class add dev "$DEV" parent 1: classid 1:1 hfsc ls m2 "${RATE}kbit" ul m2 "${
 tc class add dev "$DEV" parent 1:1 classid 1:11 hfsc rt m1 "$((RATE*97/100))kbit" d "${DUR}ms" m2 "${gamerate}kbit"
 
 # fast non-realtime
-tc class add dev "$DEV" parent 1:1 classid 1:12 hfsc ls m1 "$((RATE*75/100))kbit" d "${DUR}ms" m2 "$((RATE*30/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:12 hfsc ls m1 "$((RATE*70/100))kbit" d "${DUR}ms" m2 "$((RATE*30/100))kbit"
 
 # normal
-tc class add dev "$DEV" parent 1:1 classid 1:13 hfsc ls m1 "$((RATE*20/100))kbit" d "${DUR}ms" m2 "$((RATE*50/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:13 hfsc ls m1 "$((RATE*20/100))kbit" d "${DUR}ms" m2 "$((RATE*45/100))kbit"
 
 # low prio
-tc class add dev "$DEV" parent 1:1 classid 1:14 hfsc ls m1 "$((RATE*4/100))kbit" d "${DUR}ms" m2 "$((RATE*15/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:14 hfsc ls m1 "$((RATE*7/100))kbit" d "${DUR}ms" m2 "$((RATE*15/100))kbit"
 
 # bulk
-tc class add dev "$DEV" parent 1:1 classid 1:15 hfsc ls m1 "$((RATE*1/100))kbit" d "${DUR}ms" m2 "$((RATE*5/100))kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:15 hfsc ls m1 "$((RATE*3/100))kbit" d "${DUR}ms" m2 "$((RATE*10/100))kbit"
 
 
 
@@ -248,6 +267,11 @@ tc class add dev "$DEV" parent 1:1 classid 1:15 hfsc ls m1 "$((RATE*1/100))kbit"
 REDMIN=$((RATE*MAXDEL/3/8)) 
 
 REDMAX=$((RATE * MAXDEL/8)) 
+
+# for fq_codel
+INTVL=$((100+2*1500*8/RATE))
+TARG=$((540*8/RATE+4))
+
 
 
 case $useqdisc in
@@ -283,26 +307,22 @@ case $useqdisc in
 	tc qdisc add dev "$DEV" parent 1:11 handle 10: red limit 150000 min $REDMIN max $REDMAX avpkt 500 bandwidth ${RATE}kbit  probability 1.0
 	## send game packets to 10:, they're all treated the same
 	;;
+    "fq_codel")
+	tc qdisc add dev "$DEV" parent "1:11" fq_codel memory_limit $((RATE*200/8)) interval "${INTVL}ms" target "${TARG}ms" quantum $((MTU * 2))
+	;;
     "netem")
 	tc qdisc add dev "$DEV" parent 1:11 handle 10: netem limit $((4+9*RATE/8/500)) delay "${netemdelayms}ms" "${netemjitterms}ms" distribution "$netemdist"
 	;;
+
+
 esac
 
-INTVL=$((100+2*1500*8/RATE))
-TARG=$((2*1500*8/RATE+5))
 
-if [ $((MTU * 8 * 10 / RATE > 50)) -eq 1 ]; then ## if one MTU packet takes more than 5ms
-    echo "adding PIE qdisc for non-game traffic due to slow link"
-    for i in 12 13 14 15; do 
-	tc qdisc add dev "$DEV" parent "1:$i" pie limit  "$((RATE * 200 / (MTU * 8)))" target "${TARG}ms" ecn tupdate "$((TARG*3))ms" bytemode
-    done
-else ## we can have queues with multiple packets without major delays, fair queuing is more meaningful
-    echo "adding fq_codel qdisc for non-game traffic due to fast link"
+echo "adding fq_codel qdisc for non-game traffic"
+for i in 12 13 14 15; do 
+    tc qdisc add dev "$DEV" parent "1:$i" fq_codel memory_limit $((RATE*200/8)) interval "${INTVL}ms" target "${TARG}ms" quantum $((MTU * 2))
+done
 
-    for i in 12 13 14 15; do 
-	tc qdisc add dev "$DEV" parent "1:$i" fq_codel memory_limit $((RATE*200/8)) interval "${INTVL}ms" target "${TARG}ms" quantum $((MTU * 2))
-    done
-fi
 
 }
 
