@@ -318,18 +318,11 @@ case $useqdisc in
 esac
 
 
-if [ $((MTU * 8 * 10 / RATE > 50)) -eq 1 ]; then ## if one MTU packet takes more than 5ms
-    echo "adding PIE qdisc for non-game traffic due to slow link"
-    for i in 12 13 14 15; do 
-	tc qdisc add dev "$DEV" parent "1:$i" pie limit  "$((RATE * 200 / (MTU * 8)))" target "${TARG}ms" ecn tupdate "$((TARG*3))ms" bytemode
-    done
-else ## we can have queues with multiple packets without major delays, fair queuing is more meaningful
-    echo "adding fq_codel qdisc for non-game traffic due to fast link"
+echo "adding fq_codel qdisc for non-game traffic"
+for i in 12 13 14 15; do 
+    tc qdisc add dev "$DEV" parent "1:$i" fq_codel memory_limit $((RATE*200/8)) interval "${INTVL}ms" target "${TARG}ms" quantum $((MTU * 2))
+done
 
-    for i in 12 13 14 15; do 
-	tc qdisc add dev "$DEV" parent "1:$i" fq_codel memory_limit $((RATE*200/8)) interval "${INTVL}ms" target "${TARG}ms" quantum $((MTU * 2))
-    done
-fi
 
 }
 
