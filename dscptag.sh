@@ -89,8 +89,8 @@ done
 ## implement intentional packet loss
 
 if [ $pktlossp != "none" ] ; then
-    ipt4dscp -p udp -m set --match-set "realtimeset4" src -m statistic --mode random --probability $pktlossp
-    ipt6dscp -p udp -m set --match-set "realtimeset6" src -m statistic --mode random --probability $pktlossp
+    ipt4dscp -p udp -m set --match-set "realtimeset4" src -m statistic --mode random --probability $pktlossp -j DROP
+    ipt6dscp -p udp -m set --match-set "realtimeset6" src -m statistic --mode random --probability $pktlossp -j DROP
 fi
 
 
