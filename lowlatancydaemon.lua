@@ -1,7 +1,5 @@
-#!/bin/lua
 
-
-## set these, it will keep low latency from start to end hour (6am to 10pm by default)
+-- set these, it will keep low latency from start to end hour (6am to 10pm by default)
 
 starthr=6
 endhr=22
@@ -21,11 +19,11 @@ while true do
    sleep(60);
    now = os.time();
    nowtable = os.date("*t",now);
-   if !isopen && nowtable["hour"] >= starthr && nowtable["hour"] <= endhr then
+   if (not isopen) and nowtable["hour"] >= starthr and nowtable["hour"] <= endhr then
       dmafile = io.open("/dev/cpu_dma_latency","wb");
       dmafile:write(latencybytes);
       isopen = true
-   elseif isopen && ( nowtable["hour"] < starthr || nowtable["hour"] > endhr ) then
+   elseif isopen and ( nowtable["hour"] < starthr or nowtable["hour"] > endhr ) then
       dmafile:close()
       isopen = false
    end
