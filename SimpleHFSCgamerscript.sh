@@ -70,6 +70,10 @@ netemdelayms="1"
 netemjitterms="7"
 netemdist="normal"
 
+pktlossp="none" # set to "none" for no packet loss, or use a fraction
+		# like 0.015 for 1.5% packet loss in the realtime UDP
+		# streams
+
 
 if [ $gameqdisc != "fq_codel" -a $gameqdisc != "red" -a $gameqdisc != "pfifo" -a $gameqdisc != "netem" ]; then
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
