@@ -87,6 +87,23 @@ settings. Testers have successfully played with fluid gaming on
 16000kbps down / 830kbps up DSL lines.
 
 
+# Low Latency Daemon for x86 routers
+
+On x86 routers using the intel pstate power saving system, you can
+prevent the cpu from going to very low power states by running the
+script lowlatencydaemon.lua as follows (can be done in /etc/rc.local)
+
+```
+lua lowlatencydaemon.lua
+```
+
+It has two tunables, starthr and endhr, which are the hours of the day
+that it should run at low latency, by default 6 and 22 so it is in low
+latency mode from 6am to 11pm. You can set 0 and 24 if you want low
+latency at all times.
+
+
+
 # Router performance analysis scripts (other scripts in this github)
 
 This software collects data on a router running OpenWRT (or other
