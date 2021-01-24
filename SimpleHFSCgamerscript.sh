@@ -351,8 +351,8 @@ read -r cont
 
 if [ "$cont" = "y" ]; then
 
-    ipt64 -t mangle -F FORWARD
-
+    /etc/init.d/firewall restart
+    
     ipt64 -t mangle -N dscptag
     ipt64 -t mangle -F dscptag
     
@@ -404,6 +404,9 @@ if [ "$cont" = "y" ]; then
 	    ;;
     esac
     
+    if [ $UPRATE -lt 3000 -o $DOWNRATE -lt 3000 ]; then
+	ipt64 -t mangle -F FORWARD
+    fi
     
     if [ $UPRATE -lt 3000 ]; then
 	ipt64 -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o $LAN -j TCPMSS --set-mss 540
