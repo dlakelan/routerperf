@@ -86,6 +86,12 @@ for dir in src dst ; do
     ipt6dscp -p udp -m set --match-set "realtimeset6" $dir -j DSCP --set-dscp-class CS5
 done
 
+## implement intentional packet loss
+
+if [ $pktlossp != "none" ] ; then
+    ipt4dscp -p udp -m set --match-set "realtimeset4" src -m statistic --mode random --probability $pktlossp -j DROP
+    ipt6dscp -p udp -m set --match-set "realtimeset6" src -m statistic --mode random --probability $pktlossp -j DROP
+fi
 
 
 #down prioritize low priority machines, tcp and udp:
