@@ -157,6 +157,7 @@ if [ $USEVETHDOWN = "yes" ] ; then
     ip link show lanveth || ip link add lanveth type veth peer name lanbrport
     LAN=lanveth
     ip link set lanbrport master $LANBR
+    ip route flush table 100
     ip route add default via $LAN table 100
     ip rule add iif $WAN table 100
 
