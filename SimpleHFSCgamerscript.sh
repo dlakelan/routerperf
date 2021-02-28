@@ -10,7 +10,9 @@ LANBR=br-lan
 
 WAN=eth0.2 # change this to your WAN device name
 UPRATE=18000 #change this to your kbps upload speed
-LAN=eth0.1 # change to your LAN device if you don't use veth/bridge
+LAN=eth0.1 # change to your LAN device if you don't use veth/bridge,
+	   # leave it alone if you use veth, it will get set in the
+	   # script below
 
 
 DOWNRATE=65000 #change this to about 80% of your download speed (in kbps)
@@ -156,11 +158,13 @@ if [ $USEVETHDOWN = "yes" ] ; then
 
     ip link show lanveth || ip link add lanveth type veth peer name lanbrport
     LAN=lanveth
+    ip link set lanveth up
+    ip link set lanbrport up
     ip link set lanbrport master $LANBR
     ip route flush table 100
-    ip route add default via $LAN table 100
-    ip rule add iif $WAN table 100
-
+    ip route add default dev $LAN table 100
+    ip rule add iif $WAN priority 100 table 100
+    
 fi
 
 
