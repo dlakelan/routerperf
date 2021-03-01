@@ -264,7 +264,7 @@ tc class add dev "$DEV" parent 1: classid 1:1 hfsc ls m2 "${RATE}kbit" ul m2 "${
 
 
 gameburst=$((gamerate*10))
-if [ gameburst -gt $((RATE*97/100)) ] ; then
+if [ $gameburst -gt $((RATE*97/100)) ] ; then
     gameburst=$((RATE*97/100));
 fi
 
