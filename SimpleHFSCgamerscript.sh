@@ -163,8 +163,9 @@ if [ $USEVETHDOWN = "yes" ] ; then
     ip link set lanbrport master $LANBR
     ip route flush table 100
     ip route add default dev $LAN table 100
+    ip -6 route add default dev $LAN table 100
     ip rule add iif $WAN priority 100 table 100
-    
+    ip -6 rule add iif $WAN priority 100 table 100
 fi
 
 
