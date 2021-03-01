@@ -20,6 +20,17 @@ a bridge with ethernet and wifi contains two devices.
   altered it from the OpenWrt default
 - edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
 - You will need some packages, and I'm not sure what they all are, but you need packages for ipsets, hashlimits, the HFSC qdisc, veth modules, ip-full and probably a few others. If someone can give me a list, I will put it here.
+- Preliminary package list suggests this is enough:
+ - kmod-sched
+ - ipset
+ - kmod-ipt-ipset
+ - ip-full
+ - kmod-veth
+ - iptables-mod-hashlimit
+ - kmod-ipt-hashlimit
+ - tc
+ - iptables-mod-ipopt
+ - iptables-mod-conntrack-extra
 
 ```
 for ip4 in 192.168.1.111 192.168.1.222; do
