@@ -19,6 +19,7 @@ a bridge with ethernet and wifi contains two devices.
   and "LANBR=br-lan" or change the name of your lan bridge if you have
   altered it from the OpenWrt default
 - edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
+- You will need some packages, and I'm not sure what they all are, but you need packages for ipsets, hashlimits, the HFSC qdisc, veth modules, ip-full and probably a few others. If someone can give me a list, I will put it here.
 
 ```
 for ip4 in 192.168.1.111 192.168.1.222; do
