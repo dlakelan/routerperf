@@ -34,12 +34,12 @@ done
 - If you are using the veth based method, then you need to add a custom OpenWrt interface for the veth device, do:
 
 From the LUCI web interface:
-go to network > interfaces
+- go to network > interfaces
 
-create an interface called "veth"
-under general setup > Protocol = unmanaged
-under physical settings > interface = lanveth
-under firewall settings > assign firewall-zone = LAN
+- create an interface called "veth"
+- under general setup > Protocol = unmanaged
+- under physical settings > interface = lanveth
+- under firewall settings > assign firewall-zone = LAN
 
 
 
