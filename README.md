@@ -14,6 +14,10 @@ a bridge with ethernet and wifi contains two devices.
 - chmod a+x /etc/SimpleHFSCgamerscript.sh
 - wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
 - edit SimpleHFSCgamerscript.sh to set your WAN and LAN interfaces, your network speeds, and the speed you reserve for your game (GAMEUP and GAMEDOWN)
+- As of now the system will work with a combo wired+wifi router using
+  a veth based design. If you want to use this set "USEVETHDOWN=yes"
+  and "LANBR=br-lan" or change the name of your lan bridge if you have
+  altered it from the OpenWrt default
 - edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
 
 ```
@@ -27,6 +31,17 @@ done
 ```
 - edit the script to include bulk ports for torrent clients that you use
 - edit dscptag.sh to add any rules you want to use for custom DSCP tagging
+- If you are using the veth based method, then you need to add a custom OpenWrt interface for the veth device, do:
+
+From the LUCI web interface:
+go to network > interfaces
+
+create an interface called "veth"
+under general setup > Protocol = unmanaged
+under physical settings > interface = lanveth
+under firewall settings > assign firewall-zone = LAN
+
+
 
 Now, run the script
 
