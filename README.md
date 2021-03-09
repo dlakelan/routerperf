@@ -19,6 +19,16 @@ a bridge with ethernet and wifi contains two devices.
   and "LANBR=br-lan" or change the name of your lan bridge if you have
   altered it from the OpenWrt default
 - edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
+
+```
+for ip4 in 192.168.1.111 192.168.1.222; do
+    ipset add realtimeset4 "$ip4"
+done
+
+for ip6 in 2001:db8::1 2001:db8::2 ; do
+    ipset add realtimeset6 "$ip6"
+done
+```
 - You will need some packages, and I'm not sure what they all are, but you need packages for ipsets, hashlimits, the HFSC qdisc, veth modules, ip-full and probably a few others. If someone can give me a list, I will put it here.
 - Preliminary package list suggests this is enough:
   - kmod-sched
@@ -31,16 +41,6 @@ a bridge with ethernet and wifi contains two devices.
   - tc
   - iptables-mod-ipopt
   - iptables-mod-conntrack-extra
-
-```
-for ip4 in 192.168.1.111 192.168.1.222; do
-    ipset add realtimeset4 "$ip4"
-done
-
-for ip6 in 2001:db8::1 2001:db8::2 ; do
-    ipset add realtimeset6 "$ip6"
-done
-```
 - edit the script to include bulk ports for torrent clients that you use
 - edit dscptag.sh to add any rules you want to use for custom DSCP tagging
 - If you are using the veth based method, then you need to add a custom OpenWrt interface for the veth device, do:
