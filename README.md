@@ -55,16 +55,20 @@ From the LUCI web interface:
 
 
 
-Now, run the script
+Now, for testing, run the script
 
 ./SimpleHFSCgamerscript.sh
 
-or in your /etc/rc.local do
+
+- To enable the script at all times, get the hotplug file:
 
 ```
-echo y | /etc/SimpleHFSCgamerscript.sh
+cd /etc/hotplug.d/iface/
+wget https://raw.githubusercontent.com/dlakelan/routerperf/master/13-SimpleHFSCGamerScriptHotplug
 ```
-so it starts at boot.
+- Reboot
+
+
 
 ## What this script does:
 
