@@ -384,6 +384,7 @@ if [ "$cont" = "y" ]; then
     
     ipt64 -t mangle -N dscptag
     ipt64 -t mangle -F dscptag
+    ipt64 -t mangle -F OUTPUT ## not sure why this is needed, but firewall restart doesn't flush OUTPUT
     
     
     if [ "$WASHDSCPUP" = "yes" ]; then
