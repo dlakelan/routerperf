@@ -14,6 +14,10 @@ a bridge with ethernet and wifi contains two devices.
 - chmod a+x /etc/SimpleHFSCgamerscript.sh
 - wget --no-check-certificates https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
 - edit SimpleHFSCgamerscript.sh to set your WAN and LAN interfaces, your network speeds, and the speed you reserve for your game (GAMEUP and GAMEDOWN)
+- As of now the system will work with a combo wired+wifi router using
+  a veth based design. If you want to use this set "USEVETHDOWN=yes"
+  and "LANBR=br-lan" or change the name of your lan bridge if you have
+  altered it from the OpenWrt default
 - edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
 - if you want to use netem also grab the files in tc-dists folder and place in /usr/lib/tc on your router
 
@@ -26,19 +30,46 @@ for ip6 in 2001:db8::1 2001:db8::2 ; do
     ipset add realtimeset6 "$ip6"
 done
 ```
+- You will need some packages, and I'm not sure what they all are, but you need packages for ipsets, hashlimits, the HFSC qdisc, veth modules, ip-full and probably a few others. If someone can give me a list, I will put it here.
+- Preliminary package list suggests this is enough:
+  - kmod-sched
+  - ipset
+  - kmod-ipt-ipset
+  - ip-full
+  - kmod-veth
+  - iptables-mod-hashlimit
+  - kmod-ipt-hashlimit
+  - tc
+  - iptables-mod-ipopt
+  - iptables-mod-conntrack-extra
 - edit the script to include bulk ports for torrent clients that you use
 - edit dscptag.sh to add any rules you want to use for custom DSCP tagging
+- If you are using the veth based method, then you need to add a custom OpenWrt interface for the veth device, do:
 
-Now, run the script
+From the LUCI web interface:
+- go to network > interfaces
+
+- create an interface called "veth"
+- under general setup > Protocol = unmanaged
+- under physical settings > interface = lanveth
+- under firewall settings > assign firewall-zone = LAN
+
+
+
+Now, for testing, run the script
 
 ./SimpleHFSCgamerscript.sh
 
-or in your /etc/rc.local do
+
+- To enable the script at all times, get the hotplug file:
 
 ```
-echo y | /etc/SimpleHFSCgamerscript.sh
+cd /etc/hotplug.d/iface/
+wget https://raw.githubusercontent.com/dlakelan/routerperf/master/13-SimpleHFSCGamerScriptHotplug
 ```
-so it starts at boot.
+- Reboot
+
+
 
 ## What this script does:
 

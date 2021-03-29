@@ -5,9 +5,16 @@
 
 LINKTYPE="ethernet"
 
-WAN=veth0 # change this to your WAN device name
+USEVETHDOWN=no
+LANBR=br-lan
+
+WAN=eth0.2 # change this to your WAN device name
 UPRATE=18000 #change this to your kbps upload speed
-LAN=veth1
+LAN=eth0.1 # change to your LAN device if you don't use veth/bridge,
+	   # leave it alone if you use veth, it will get set in the
+	   # script below
+
+
 DOWNRATE=65000 #change this to about 80% of your download speed (in kbps)
 OH=40 # number of bytes of Overhead on your line (37 is reasonable
       # starting point, better to be too big than too small) probably
@@ -147,6 +154,22 @@ WASHDSCPDOWN="yes"
 
 ######################### CUSTOMIZATIONS GO ABOVE THIS LINE ###########
 
+if [ $USEVETHDOWN = "yes" ] ; then
+
+    ip link show lanveth || ip link add lanveth type veth peer name lanbrport
+    LAN=lanveth
+    ip link set lanveth up
+    ip link set lanbrport up
+    ip link set lanbrport master $LANBR
+    ip route flush table 100
+    ip route add default dev $LAN table 100
+    ip -6 route add default dev $LAN table 100
+    ip rule add iif $WAN priority 100 table 100
+    ip -6 rule add iif $WAN priority 100 table 100
+fi
+
+
+
 cat <<EOF
 
 This script prioritizes the UDP packets from / to a set of gaming
@@ -240,8 +263,14 @@ fi
 tc class add dev "$DEV" parent 1: classid 1:1 hfsc ls m2 "${RATE}kbit" ul m2 "${RATE}kbit"
 
 
+gameburst=$((gamerate*10))
+if [ $gameburst -gt $((RATE*97/100)) ] ; then
+    gameburst=$((RATE*97/100));
+fi
+
+
 # high prio realtime class
-tc class add dev "$DEV" parent 1:1 classid 1:11 hfsc rt m1 "$((RATE*97/100))kbit" d "${DUR}ms" m2 "${gamerate}kbit"
+tc class add dev "$DEV" parent 1:1 classid 1:11 hfsc rt m1 "${gameburst}kbit" d "${DUR}ms" m2 "${gamerate}kbit"
 
 # fast non-realtime
 tc class add dev "$DEV" parent 1:1 classid 1:12 hfsc ls m1 "$((RATE*70/100))kbit" d "${DUR}ms" m2 "$((RATE*30/100))kbit"
