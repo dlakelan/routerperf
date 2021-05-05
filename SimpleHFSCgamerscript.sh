@@ -362,7 +362,6 @@ done
 
 setqdisc $WAN $UPRATE $GAMEUP $gameqdisc wan
 
-## uncomment this to do the download direction via output of LAN
 setqdisc $LAN $DOWNRATE $GAMEDOWN $gameqdisc lan
 
 ## we want to classify packets, so use these rules
@@ -388,7 +387,11 @@ if [ "$cont" = "y" ]; then
     
     
     if [ "$WASHDSCPUP" = "yes" ]; then
-	ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
+	if [ $USEVETHDOWN="yes" ]; then
+	    ipt64 -t mangle -A FORWARD -i $LANBR -j DSCP --set-dscp-class CS0
+	else
+	    ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
+	fi
     fi
     if [ "$WASHDSCPDOWN" = "yes" ]; then
 	ipt64 -t mangle -A FORWARD -i $WAN -j DSCP --set-dscp-class CS0
