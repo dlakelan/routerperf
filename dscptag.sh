@@ -49,8 +49,8 @@ ipt64dscp -p udp --dport 10000 -j DSCP --set-dscp-class CS4
 ipt64dscp -p udp --sport 10000 -j DSCP --set-dscp-class CS4
 
 ## boost zoom to CS4
-ipt64dscp -p udp -m multiport --sports 3478:3479,8801:8802 -j DSCP --set-dscp-class CS4
-ipt64dscp -p udp -m multiport --dports 3478:3479,8801:8802 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp -m multiport --sports 8801:8802 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp -m multiport --dports 8801:8802 -j DSCP --set-dscp-class CS4
 
 ## boost google meet CS4
 ipt64dscp -p udp -m multiport --sports 19302:19309 -j DSCP --set-dscp-class CS4
