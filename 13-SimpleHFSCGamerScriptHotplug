@@ -2,6 +2,6 @@
 
 [ -n "$DEVICE" ] || exit 0
 [ "$ACTION" = ifup ] &&  {                                                                            
-    echo y | /etc/SimpleHFSCGamerScript.sh
-    logger -t SimpleHFSCGamerScript "Reloading SimpleHFSCGamerScript.sh due to $ACTION of $INTERFACE ($DEVICE)"
+    echo y | /etc/SimpleHFSCgamerscript.sh
+    logger -t SimpleHFSCgamerscript "Reloading SimpleHFSCgamerscript.sh due to $ACTION of $INTERFACE ($DEVICE)"
 }
