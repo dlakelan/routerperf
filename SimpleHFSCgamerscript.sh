@@ -400,24 +400,24 @@ if [ "$cont" = "y" ]; then
     ipt64 -t mangle -A POSTROUTING -j dscptag
     source $DSCPSCRIPT
     
-    ipt64 -t mangle -A FORWARD -j CLASSIFY --set-class 1:13 # default everything to 1:13,  the "normal" qdisc
+    ipt64 -t mangle -A FORWARD -j CLASSIFY --set-class 1:13 -m comment --comment "Default" # default everything to 1:13,  the "normal" qdisc
 
     # traffic from the router to the LAN bypasses the download queue
     ipt64 -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:2
     
-    ## these dscp values go to realtime: EF, CS5, CS6, CS7
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class EF -j CLASSIFY --set-class 1:11
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS5 -j CLASSIFY --set-class 1:11
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS6 -j CLASSIFY --set-class 1:11
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS7 -j CLASSIFY --set-class 1:11
+    ## these dscp values go to realtime: EF, CS5, CS6, CS7 #Change "PS4" to your console etc. "Xbox"
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class EF -j CLASSIFY --set-class 1:11 -m comment --comment "High"
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS5 -j CLASSIFY --set-class 1:11 -m comment --comment "PS4"
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS6 -j CLASSIFY --set-class 1:11 -m comment --comment "High"
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS7 -j CLASSIFY --set-class 1:11 -m comment --comment "High"
     
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS4 -j CLASSIFY --set-class 1:12
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF41 -j CLASSIFY --set-class 1:12
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF42 -j CLASSIFY --set-class 1:12
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS4 -j CLASSIFY --set-class 1:12 -m comment --comment "Fast"
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF41 -j CLASSIFY --set-class 1:12 -m comment --comment "Fast"
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF42 -j CLASSIFY --set-class 1:12 -m comment --comment "Fast"
     
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS2 -j CLASSIFY --set-class 1:14
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS1 -j CLASSIFY --set-class 1:15
-
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS2 -j CLASSIFY --set-class 1:14 -m comment --comment "Low"
+    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS1 -j CLASSIFY --set-class 1:15 -m comment --comment "Bulk"
+    
     ## wash DSCP out to the ISP now that we used it for classifying
 
     if [ "$WASHDSCPUP" = "yes" ]; then
