@@ -14,12 +14,12 @@ ipt6dscp() {
 
 
 ## downgrade torrents etc UDP:
-ipt64dscp -p udp -m multiport --sports "$UDPBULKPT" -j DSCP --set-dscp-class CS1
-ipt64dscp -p udp -m multiport --dports "$UDPBULKPT" -j DSCP --set-dscp-class CS1
+ipt64dscp -p udp -m multiport --sports "$UDPBULKPT" -j DSCP --set-dscp-class CS1 -m comment --comment "Bulk"
+ipt64dscp -p udp -m multiport --dports "$UDPBULKPT" -j DSCP --set-dscp-class CS1 -m comment --comment "Bulk"
 
 ## downgrade torrents etc TCP:
-ipt64dscp -p tcp -m multiport --sports "$TCPBULKPT" -j DSCP --set-dscp-class CS1
-ipt64dscp -p tcp -m multiport --dports "$TCPBULKPT" -j DSCP --set-dscp-class CS1
+ipt64dscp -p tcp -m multiport --sports "$TCPBULKPT" -j DSCP --set-dscp-class CS1 -m comment --comment "Bulk"
+ipt64dscp -p tcp -m multiport --dports "$TCPBULKPT" -j DSCP --set-dscp-class CS1 -m comment --comment "Bulk"
 
 
 
@@ -45,33 +45,33 @@ ipt64dscp -p tcp -m tcp --tcp-flags ACK ACK -o $WAN -m length --length 1:100 -m 
 ## boost these video conferences to CS5 and make it realtime, but then
 ## it can interfere with other realtime/game. Often CS4 will be enough
 
-ipt64dscp -p udp --dport 10000 -j DSCP --set-dscp-class CS4
-ipt64dscp -p udp --sport 10000 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp --dport 10000 -j DSCP --set-dscp-class CS4 -m comment --comment "jitsi"
+ipt64dscp -p udp --sport 10000 -j DSCP --set-dscp-class CS4 -m comment --comment "jitsi"
 
 ## boost zoom to CS4
-ipt64dscp -p udp -m multiport --sports 3478:3479,8801:8802 -j DSCP --set-dscp-class CS4
-ipt64dscp -p udp -m multiport --dports 3478:3479,8801:8802 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp -m multiport --sports 3478:3479,8801:8802 -j DSCP --set-dscp-class CS4 -m comment --comment "zoom"
+ipt64dscp -p udp -m multiport --dports 3478:3479,8801:8802 -j DSCP --set-dscp-class CS4 -m comment --comment "zoom"
 
 ## boost google meet CS4
-ipt64dscp -p udp -m multiport --sports 19302:19309 -j DSCP --set-dscp-class CS4
-ipt64dscp -p udp -m multiport --dports 19302:19309 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp -m multiport --sports 19302:19309 -j DSCP --set-dscp-class CS4 -m comment --comment "google"
+ipt64dscp -p udp -m multiport --dports 19302:19309 -j DSCP --set-dscp-class CS4 -m comment --comment "google"
 
 ## boost webex to CS4
 
-ipt64dscp -p udp --dport 9000 -j DSCP --set-dscp-class CS4
-ipt64dscp -p udp --sport 9000 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp --dport 9000 -j DSCP --set-dscp-class CS4 -m comment --comment "webex"
+ipt64dscp -p udp --sport 9000 -j DSCP --set-dscp-class CS4-m comment --comment "webex"
 
 ## boost teamviewer to CS4
 
-ipt64dscp -p udp --dport 5938 -j DSCP --set-dscp-class CS4
-ipt64dscp -p udp --sport 5938 -j DSCP --set-dscp-class CS4
-ipt64dscp -p tcp --dport 5938 -j DSCP --set-dscp-class CS4
-ipt64dscp -p tcp --sport 5938 -j DSCP --set-dscp-class CS4
+ipt64dscp -p udp --dport 5938 -j DSCP --set-dscp-class CS4 -m comment --comment "teamviewer"
+ipt64dscp -p udp --sport 5938 -j DSCP --set-dscp-class CS4 -m comment --comment "teamviewer"
+ipt64dscp -p tcp --dport 5938 -j DSCP --set-dscp-class CS4 -m comment --comment "teamviewer"
+ipt64dscp -p tcp --sport 5938 -j DSCP --set-dscp-class CS4 -m comment --comment "teamviewer"
 
 
 ## boost DNS traffic
-ipt4dscp -p udp --dport 53 -j DSCP --set-dscp-class CS4
-ipt4dscp -p udp --sport 53 -j DSCP --set-dscp-class CS4
+ipt4dscp -p udp --dport 53 -j DSCP --set-dscp-class CS4 -m comment --comment "DNS"
+ipt4dscp -p udp --sport 53 -j DSCP --set-dscp-class CS4 -m comment --comment "DNS"
 
 
 ## boost the gaming machines UDP always to CS5 for realtime access if
@@ -82,8 +82,8 @@ ipt4dscp -p udp --sport 53 -j DSCP --set-dscp-class CS4
 
 
 for dir in src dst ; do 
-    ipt4dscp -p udp -m set --match-set "realtimeset4" $dir -j DSCP --set-dscp-class CS5
-    ipt6dscp -p udp -m set --match-set "realtimeset6" $dir -j DSCP --set-dscp-class CS5
+    ipt4dscp -p udp -m set --match-set "realtimeset4" $dir -j DSCP --set-dscp-class CS5 -m comment --comment "PS4"
+    ipt6dscp -p udp -m set --match-set "realtimeset6" $dir -j DSCP --set-dscp-class CS5 -m comment --comment "PS4"
 done
 
 ## implement intentional packet loss
@@ -98,8 +98,8 @@ fi
 
 for proto in udp tcp ; do
     for dir in src dst ; do 
-	ipt4dscp -p $proto -m set --match-set "lowprioset4" $dir -j DSCP --set-dscp-class CS2
-	ipt6dscp -p $proto -m set --match-set "lowprioset6" $dir -j DSCP --set-dscp-class CS2
+	ipt4dscp -p $proto -m set --match-set "lowprioset4" $dir -j DSCP --set-dscp-class CS2 -m comment --comment "low"
+	ipt6dscp -p $proto -m set --match-set "lowprioset6" $dir -j DSCP --set-dscp-class CS2 -m comment --comment "low"
     done
 done
 
