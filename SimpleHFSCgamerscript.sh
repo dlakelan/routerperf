@@ -387,7 +387,7 @@ if [ "$cont" = "y" ]; then
     
     
     if [ "$WASHDSCPUP" = "yes" ]; then
-	if [ $USEVETHDOWN="yes" ]; then
+	if [ $USEVETHDOWN = "yes" ]; then
 	    ipt64 -t mangle -A FORWARD -i $LANBR -j DSCP --set-dscp-class CS0
 	else
 	    ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
