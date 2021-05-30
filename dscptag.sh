@@ -59,7 +59,7 @@ ipt64dscp -p udp -m multiport --dports 19302:19309 -j DSCP --set-dscp-class CS4 
 ## boost webex to CS4
 
 ipt64dscp -p udp --dport 9000 -j DSCP --set-dscp-class CS4 -m comment --comment "webex"
-ipt64dscp -p udp --sport 9000 -j DSCP --set-dscp-class CS4-m comment --comment "webex"
+ipt64dscp -p udp --sport 9000 -j DSCP --set-dscp-class CS4 -m comment --comment "webex"
 
 ## boost teamviewer to CS4
 
