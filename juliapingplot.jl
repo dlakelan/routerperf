@@ -1,5 +1,5 @@
-#using Pkg
-#Pkg.activate(".")
+using Pkg
+Pkg.activate(".")
 #Pkg.add(["DataFrames","StatsPlots","CSV"])
 
 using DataFrames, StatsPlots, CSV
@@ -22,6 +22,9 @@ function gethops(dname)
     while true
         if(!eof(trout))
             line = lstrip(readline(trout));
+            if match(r"[0-9.]+ ms",line) === nothing
+                continue
+            end
             s = split(line,r"[ *]+")
             push!(hops,(n=s[1],addr=s[2],ms=s[3]))
             #@show hops
