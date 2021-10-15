@@ -1,5 +1,5 @@
 -module(sqmfeedback).
--export([main/0,pingtimes_ms/3,monitor_ifaces/3,monitor_a_site/1,adjuster/1,monitor_delays/2,timer_process/3,monitor_bw/2 ]).
+-export([main/0,pingtimes_ms/3,monitor_ifaces/3,monitor_a_site/1,adjuster/1,monitor_delays/2,timer_process/2,monitor_bw/2 ]).
 
 
 %% Read a line of ping output and extract the time in milliseconds
@@ -140,13 +140,14 @@ monitor_delays(RepPid, Sites) ->
 	    %% by up averages slightly less than 1, based on
 	    %% simulations this averages around .98... this ensures
 	    %% we don't grow too fast.
-
+	    RNG = rand:uniform(),
 	    if length(RecentSites) > 3 ->
 		    Factor = rand:uniform() * 0.15 + 0.85,
 		    RepPid ! {factor,Factor};
-	       true ->
+	       RNG < 1.0/20 -> %% about every 20 seconds on average
 		    Factor = rand:uniform() * 0.12 + 1.0,
-		    RepPid ! {factor,Factor}
+		    RepPid ! {factor,Factor};
+	       true -> true
 	    end,
 	    monitor_delays(RepPid,RecentSites)
     end.
@@ -168,8 +169,8 @@ adjuster(Tuples) ->
 	    %% usage. This ensures we're never super high when a bandwidth spike occurs, causing bbloat
 	    RND = rand:uniform(),
 	    if
-		(((C2 > L2) and (RxBW < C2/2)) or ((C1 > L1) and (TxBW < C1/2))) and (RND < 0.05) ->
-		    self() ! {factor,0.99} ;
+		(((C2 > L2) and (RxBW < C2/2)) or ((C1 > L1) and (TxBW < C1/2))) and (RND < 1.0/20) ->
+		    self() ! {factor,0.85} ;
 		true -> true
 	    end,
 	    adjuster(Tuples);
@@ -187,12 +188,12 @@ adjuster(Tuples) ->
 %% sufficient delay on a regular basis. P1 is the adjuster process, P2
 %% is the bw estimator
 
-timer_process(P1,P2,T) ->
-    erlang:send_after(T*1000,P1,{timer,erlang:system_time(seconds)}),
+timer_process(P1,P2) ->
+    erlang:send_after(1000,P1,{timer,erlang:system_time(seconds)}),
     erlang:send_after(1000,P2,{timer,erlang:system_time(millisecond)}),
     erlang:send_after(1000,self(),go),
     receive
-	_ -> timer_process(P1,P2,T)
+	_ -> timer_process(P1,P2)
     end.
 
 
@@ -209,7 +210,7 @@ monitor_ifaces(Tuples,Sites,Iface) ->
 				 {_,Site} = Tup,
 				 {proc_lib:spawn_link(sqmfeedback,monitor_a_site,[Tup]),Site} end,
 			 [{MonPid,S}||S <- Sites]),
-    TimerPid = proc_lib:spawn_link(sqmfeedback,timer_process,[MonPid,BwMonPid,40]),
+    TimerPid = proc_lib:spawn_link(sqmfeedback,timer_process,[MonPid,BwMonPid]),
     process_flag(trap_exit,true), %% we want to hear about exits
     monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,BwMonPid,TimerPid,Iface).
 
@@ -231,7 +232,7 @@ monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,BwMonPid,TimerPid,Iface) ->
 		    monitor_ifaces(Tuples,Sites,SitePids,AdjPid,NewMon,BwMonPid,TimerPid,Iface);
 		Pid == TimerPid ->
 		    io:format("respawning timer:\n"),
-		    NewTimer = proc_lib:spawn_link(sqmfeedback,timer_process,[MonPid,BwMonPid,40]),
+		    NewTimer = proc_lib:spawn_link(sqmfeedback,timer_process,[MonPid,BwMonPid]),
 		    monitor_ifaces(Tuples,Sites,SitePids,AdjPid,MonPid,BwMonPid,NewTimer,Iface);
 		Pid == BwMonPid ->
 		    io:format("respawning bw usage monitor;\n"),
