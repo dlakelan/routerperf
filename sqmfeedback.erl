@@ -158,7 +158,7 @@ monitor_delays(RepPid, Sites) ->
 %% bandwidth in integer Kbps units so we round the number.
 
 adjuster(Tuples) ->
-    [{I1,L1,C1,H1},{I2,L2,C2,H2}] = Tuples,
+    [{I1,L1,C1,H1},{I2,L2,C2,H2}] = Tuples, %% teh L1,C1 etc are upload, L2,C2 etc are download
     receive
 	{bandwidths,RxBW,TxBW,MSecs} ->
 	    io:format("Received bandwidth report: Rx: ~f, Tx: ~f at ~w\n",[RxBW,TxBW,MSecs]),
@@ -166,9 +166,10 @@ adjuster(Tuples) ->
 	    %% for now, if current bandwidth is lower than 1/2 the current set point, 
 	    %% we're going to decay down until we either hit the low end, or we're less than 2x the current 
 	    %% usage. This ensures we're never super high when a bandwidth spike occurs, causing bbloat
+	    RND = rand:uniform(),
 	    if
-		((C2 > L2) and (RxBW < C2/2)) or ((C1 > L1) and (TxBW < C1/2)) ->
-		    self() ! {factor,0.8} ;
+		(((C2 > L2) and (RxBW < C2/2)) or ((C1 > L1) and (TxBW < C1/2))) and (RND < 0.05) ->
+		    self() ! {factor,0.99} ;
 		true -> true
 	    end,
 	    adjuster(Tuples);
