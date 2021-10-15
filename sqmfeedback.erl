@@ -100,8 +100,8 @@ monitor_bw(Iface,AdjPid,LastMSecs,Rxbytes,Txbytes) ->
     receive
 	{timer,MSecs} ->
 	    {NewRx,NewTx} = read_bw(Iface),
-	    RxBW = (NewRx - Rxbytes) / (MSecs - LastMSecs),
-	    TxBW = (NewTx - Txbytes) / (MSecs - LastMSecs),
+	    RxBW = 8 * (NewRx - Rxbytes) / (MSecs - LastMSecs), % kBps
+	    TxBW = 8 * (NewTx - Txbytes) / (MSecs - LastMSecs),
 	    AdjPid ! {bandwidths,RxBW,TxBW,MSecs},
 	    %io:format("Current bandwidth: ~f, ~f kBps\n",[RxBW,TxBW]),
 	    monitor_bw(Iface,AdjPid,MSecs,NewRx,NewTx);
