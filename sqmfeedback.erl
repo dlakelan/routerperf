@@ -141,7 +141,7 @@ monitor_delays(RepPid, Sites) ->
 	    %% simulations this averages around .98... this ensures
 	    %% we don't grow too fast.
 	    RNG = rand:uniform(),
-	    if length(RecentSites) > 3 ->
+	    if (length(RecentSites) > 3) and (RNG < 1.0/20) ->
 		    Factor = rand:uniform() * 0.15 + 0.85,
 		    RepPid ! {factor,Factor};
 	       RNG < 1.0/20 -> %% about every 20 seconds on average
