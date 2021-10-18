@@ -94,6 +94,8 @@ read_bw(Iface) ->
     {ok,IoDevTx} = file:open("/sys/class/net/" ++ Iface ++ "/statistics/tx_bytes",read),
     {ok,[Rxbytes]} = io:fread(IoDevRx,"","~d"),
     {ok,[Txbytes]} = io:fread(IoDevTx,"","~d"),
+    file:close(IoDevRx),
+    file:close(IoDevTx),
     {Rxbytes,Txbytes}.
 
 monitor_bw(Iface,AdjPid,LastMSecs,Rxbytes,Txbytes) ->
