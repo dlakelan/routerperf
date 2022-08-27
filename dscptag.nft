@@ -1,0 +1,74 @@
+
+udpbulkport = {51413}
+tcpbulkport = {51413,6881-6889}
+vidconfports = {10000,3478:3479,8801:8802,19302:19309,5938,53}
+realtime4 = {192.168.109.1} # example, just add all your game console here
+realtime6 = {fd90::129a} ## example only replace with game console
+lowpriolan4 = {192.168.109.2} # example, add your low priority lan machines here
+lowpriolan6 = {fd90::129a} ## example, add your low priority lan ipv6 PUBLIC addr here
+
+ackrate = 300
+
+downrate = 15000 # kbits/sec ... CHANGE ME
+uprate = 15000 # kbits/sec ... CHANGE ME
+
+table inet dscptag {
+
+    chain dscptag {
+        type filter hook forward priority 0; policy accept;
+
+        # wash all the DSCP to begin with ... you can comment this out
+        ip ip dscp set cs0
+        ip6 ip6 dscp set cs0 
+
+        ip proto udp udp sport = $udpbulkport ip dscp set cs1
+        ip6 nexthdr udp udp sport = $udpbulkport ip6 dscp set cs1
+
+        ip proto udp udp dport = $udpbulkport ip dscp set cs1
+        ip6 nexthdr udp udp dport = $udpbulkport ip6 dscp set cs1
+
+        ip proto tcp tcp sport = $tcpbulkport ip dscp set cs1
+        ip6 nexthdr tcp tcp sport = $tcpbulkport ip6 dscp set cs1
+        ip proto tcp tcp dport = $tcpbulkport ip dscp set cs1
+        ip6 nexthdr tcp tcp dport = $tcpbulkport ip6 dscp set cs1
+
+        ## ack limit rate to about 150 pps by decimating the quantity of pure acks being sent
+        ip proto tcp tcp flags & ack meta length < 100 add @vfast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 30000/second} random mod 1000 > 5 drop
+        ip proto tcp tcp flags & ack meta length < 100 add @fast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 3000/second} random mod 1000 > 50 drop
+        ip proto tcp tcp flags & ack meta length < 100 add @med4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} random mod 1000 > 500 drop
+        ip proto tcp tcp flags & ack meta length < 100 add @slow4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} random mod 1000 > 500 drop
+        ## for almost everyone we won't send more than 150 acks/second
+
+        ip proto udp udp dport $vidconfports ip dscp set cs4
+        ip6 nexthdr udp udp dport $vidconfports ip6 dscp set cs4
+
+        ip proto udp udp daddr $realtime4 ip dscp set cs5
+        ip proto udp udp saddr $realtime4 ip dscp set cs5
+
+        ip6 nexthdr udp udp daddr $realtime6 ip6 dscp set cs5
+        ip6 nexthdr udp udp saddr $realtime6 ip6 dscp set cs5
+
+        ip proto udp udp daddr $lowpriolan4 ip dscp set cs2
+        ip proto udp udp saddr $lowpriolan4 ip dscp set cs2
+
+        ip6 nexthdr udp udp daddr $lowpriolan6 ip6 dscp set cs2
+        ip6 nexthdr udp udp saddr $lowpriolan6 ip6 dscp set cs2
+
+        #downgrade udp going faster than 450 pps, probably not realtime traffic
+        ip proto udp ip dscp > cs2 add @udp_meter4 {ip saddr . ip daddr . udp sport . udp dport limit rate over 450/second} counter ip dscp set cs2
+        ip6 nexthdr udp ip6 dscp > cs2 add @udp_meter6 {ip6 saddr . ip6 daddr . udp sport . udp dport limit rate over 450/second} counter ip dscp set cs2
+
+        # down prioritize the first 500ms of tcp packets
+        ip proto tcp ct bytes > $downrate * 500/8 ip dscp < cs4 ip dscp set cs2
+
+        # downgrade tcp that has transferred more than 10 seconds worth of packets
+        ip proto tcp ct bytes > $downrate * 10000/8 ip dscp < cs4 ip dscp set cs1
+
+        ## tcp with less than 150 pps gets upgraded to cs4
+        ip proto tcp add @slowtcp4 {ip saddr . ip daddr . udp sport . udp dport limit 150/second burst 150} ip dscp set cs4
+        ip6 nexthdr tcp add @slowtcp6 {ip6 saddr . ip6 daddr . udp sport . udp dport limit 150/second burst 150} ip dscp set cs4
+
+
+    }
+
+}
