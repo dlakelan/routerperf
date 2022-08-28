@@ -21,16 +21,16 @@ table inet dscptag {
         ip dscp set cs0
         ip6 dscp set cs0 
 
-        ip proto udp udp sport = $udpbulkport ip dscp set cs1
-        ip6 nexthdr udp udp sport = $udpbulkport ip6 dscp set cs1
+        ip proto udp udp sport $udpbulkport ip dscp set cs1
+        ip6 nexthdr udp udp sport $udpbulkport ip6 dscp set cs1
 
-        ip proto udp udp dport = $udpbulkport ip dscp set cs1
-        ip6 nexthdr udp udp dport = $udpbulkport ip6 dscp set cs1
+        ip proto udp udp dport $udpbulkport ip dscp set cs1
+        ip6 nexthdr udp udp dport $udpbulkport ip6 dscp set cs1
 
-        ip proto tcp tcp sport = $tcpbulkport ip dscp set cs1
-        ip6 nexthdr tcp tcp sport = $tcpbulkport ip6 dscp set cs1
-        ip proto tcp tcp dport = $tcpbulkport ip dscp set cs1
-        ip6 nexthdr tcp tcp dport = $tcpbulkport ip6 dscp set cs1
+        ip proto tcp tcp sport $tcpbulkport ip dscp set cs1
+        ip6 nexthdr tcp tcp sport $tcpbulkport ip6 dscp set cs1
+        ip proto tcp tcp dport $tcpbulkport ip dscp set cs1
+        ip6 nexthdr tcp tcp dport $tcpbulkport ip6 dscp set cs1
 
         ## ack limit rate to about 150 pps by decimating the quantity of pure acks being sent
         ip proto tcp tcp flags & ack meta length < 100 add @vfast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 30000/second} random mod 1000 > 5 drop
