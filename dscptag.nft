@@ -1,16 +1,16 @@
 
-udpbulkport = {51413}
-tcpbulkport = {51413,6881-6889}
-vidconfports = {10000,3478:3479,8801:8802,19302:19309,5938,53}
-realtime4 = {192.168.109.1} # example, just add all your game console here
-realtime6 = {fd90::129a} ## example only replace with game console
-lowpriolan4 = {192.168.109.2} # example, add your low priority lan machines here
-lowpriolan6 = {fd90::129a} ## example, add your low priority lan ipv6 PUBLIC addr here
+define udpbulkport = {51413}
+define tcpbulkport = {51413,6881-6889}
+define vidconfports = {10000,3478:3479,8801:8802,19302:19309,5938,53}
+define realtime4 = {192.168.109.1} # example, just add all your game console here
+define realtime6 = {fd90::129a} ## example only replace with game console
+define lowpriolan4 = {192.168.109.2} # example, add your low priority lan machines here
+define lowpriolan6 = {fd90::129a} ## example, add your low priority lan ipv6 PUBLIC addr here
 
-ackrate = 300
+define ackrate = 300
 
-downrate = 15000 # kbits/sec ... CHANGE ME
-uprate = 15000 # kbits/sec ... CHANGE ME
+define downrate = 15000 # kbits/sec ... CHANGE ME
+define uprate = 15000 # kbits/sec ... CHANGE ME
 
 table inet dscptag {
 
