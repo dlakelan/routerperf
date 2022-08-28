@@ -18,8 +18,8 @@ table inet dscptag {
         type filter hook forward priority 0; policy accept;
 
         # wash all the DSCP to begin with ... you can comment this out
-        ip ip dscp set cs0
-        ip6 ip6 dscp set cs0 
+        ip dscp set cs0
+        ip6 dscp set cs0 
 
         ip proto udp udp sport = $udpbulkport ip dscp set cs1
         ip6 nexthdr udp udp sport = $udpbulkport ip6 dscp set cs1
