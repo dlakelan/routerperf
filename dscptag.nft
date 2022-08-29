@@ -15,7 +15,9 @@ define uprate = 15000 # kbits/sec ... CHANGE ME
 define first500ms = 937500 # downrate * 500/8
 define first10s = 18750000 # downrate * 10000/8
 
+table inet dscptag # forward declaration so the next command always works
 
+flush table inet dscptag # clear all the rules
 
 table inet dscptag {
 
