@@ -15,13 +15,13 @@ define uprate = 15000 # kbits/sec ... CHANGE ME
 table inet dscptag {
 
     chain drop995 {
-        random mod 1000 > 5 drop
+        random mod 1000 < 995 drop
     }
     chain drop95 {
-        random mod 100 > 5 drop
+        random mod 100 < 95 drop
     }
     chain drop50 {
-        random mod 100 > 50 drop
+        random mod 100 < 50 drop
     }
 
 
