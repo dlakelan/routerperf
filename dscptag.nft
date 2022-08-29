@@ -45,9 +45,9 @@ table inet dscptag {
 
         ## ack limit rate to about 150 pps by decimating the quantity of pure acks being sent
         ip protocol tcp tcp flags & ack == ack meta length < 100 add @vfast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 30000/second} jump drop995 
-        ip protocol tcp tcp flags & ack == ack meta length < 100 add @fast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 3000/second} jump drop 95
-        ip protocol tcp tcp flags & ack == ack meta length < 100 add @med4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop 50
-        ip protocol tcp tcp flags & ack == ack meta length < 100 add @slow4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop 50
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @fast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 3000/second} jump drop95
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @med4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop50
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @slow4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop50
         ## for almost everyone we won't send more than 150-400 acks/second
 
         ip protocol udp udp dport $vidconfports ip dscp set cs4
