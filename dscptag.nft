@@ -33,10 +33,10 @@ table inet dscptag {
         ip6 nexthdr tcp tcp dport $tcpbulkport ip6 dscp set cs1
 
         ## ack limit rate to about 150 pps by decimating the quantity of pure acks being sent
-        ip protocol tcp tcp flags & ack meta length < 100 add @vfast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 30000/second} random mod 1000 > 5 drop
-        ip protocol tcp tcp flags & ack meta length < 100 add @fast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 3000/second} random mod 1000 > 50 drop
-        ip protocol tcp tcp flags & ack meta length < 100 add @med4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} random mod 1000 > 500 drop
-        ip protocol tcp tcp flags & ack meta length < 100 add @slow4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} random mod 1000 > 500 drop
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @vfast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 30000/second} random mod 1000 > 5 drop
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @fast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 3000/second} random mod 1000 > 50 drop
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @med4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} random mod 1000 > 500 drop
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @slow4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} random mod 1000 > 500 drop
         ## for almost everyone we won't send more than 150 acks/second
 
         ip protocol udp udp dport $vidconfports ip dscp set cs4
