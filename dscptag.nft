@@ -70,7 +70,7 @@ table inet dscptag {
         ip6 nexthdr udp ip6 dscp > cs2 add @udp_meter6 {ip6 saddr . ip6 daddr . udp sport . udp dport limit rate over 450/second} counter ip dscp set cs2
 
         # down prioritize the first 500ms of tcp packets
-        ip protocol tcp ct bytes > ($downrate * 500/8) ip dscp < cs4 ip dscp set cs2
+        ip protocol tcp ct bytes < ($downrate * 500/8) ip dscp < cs4 ip dscp set cs2
 
         # downgrade tcp that has transferred more than 10 seconds worth of packets
         ip protocol tcp ct bytes > ($downrate * 10000/8) ip dscp < cs4 ip dscp set cs1
