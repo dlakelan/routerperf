@@ -18,22 +18,29 @@ define first10s = 18750000 # downrate * 10000/8
 table inet dscptag {
 
     set xfst4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
-        elements = {}
         timeout 1h
     }
     set fast4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
-        elements = {}
         timeout 1h
     }
     set med4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
-        elements = {}
         timeout 1h
     }
     set slow4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
-        elements = {}
         timeout 1h
     }
-
+    set udp_meter4 {typeof ip saddr . ip daddr . udp sport . udp dport
+        timeout 1h
+    }
+    set udp_meter6 {typeof ip6 saddr . ip6 daddr . udp sport . udp dport
+        timeout 1h
+    }
+    set slowtcp4 {typeof ip saddr . ip daddr . tcp sport . tcp dport
+        timeout 1h
+    }
+    set slowtcp6 {typeof ip6 saddr . ip6 daddr . tcp sport . tcp dport
+        timeout 1h
+    }
 
     chain drop995 {
         numgen random mod 1000 < 995 drop
@@ -97,8 +104,8 @@ table inet dscptag {
         ip protocol tcp ct bytes > $first10s ip dscp < cs4 ip dscp set cs1
 
         ## tcp with less than 150 pps gets upgraded to cs4
-        ip protocol tcp add @slowtcp4 {ip saddr . ip daddr . udp sport . udp dport limit rate 150/second burst 150 packets } ip dscp set cs4
-        ip6 nexthdr tcp add @slowtcp6 {ip6 saddr . ip6 daddr . udp sport . udp dport limit rate 150/second burst 150 packets} ip dscp set cs4
+        ip protocol tcp add @slowtcp4 {ip saddr . ip daddr . tcp sport . tcp dport limit rate 150/second burst 150 packets } ip dscp set cs4
+        ip6 nexthdr tcp add @slowtcp6 {ip6 saddr . ip6 daddr . tcp sport . tcp dport limit rate 150/second burst 150 packets} ip dscp set cs4
 
 
     }
