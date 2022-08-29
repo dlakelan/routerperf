@@ -95,7 +95,7 @@ table inet dscptag {
 
         #downgrade udp going faster than 450 pps, probably not realtime traffic
         ip protocol udp ip dscp > cs2 add @udp_meter4 {ip saddr . ip daddr . udp sport . udp dport limit rate over 450/second} counter ip dscp set cs2
-        ip6 nexthdr udp ip6 dscp > cs2 add @udp_meter6 {ip6 saddr . ip6 daddr . udp sport . udp dport limit rate over 450/second} counter ip dscp set cs2
+        ip6 nexthdr udp ip6 dscp > cs2 add @udp_meter6 {ip6 saddr . ip6 daddr . udp sport . udp dport limit rate over 450/second} counter ip6 dscp set cs2
 
         # down prioritize the first 500ms of tcp packets
         ip protocol tcp ct bytes < $first500ms ip dscp < cs4 ip dscp set cs2
