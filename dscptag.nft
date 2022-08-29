@@ -15,7 +15,16 @@ define uprate = 15000 # kbits/sec ... CHANGE ME
 define first500ms = 937500 # downrate * 500/8
 define first10s = 18750000 # downrate * 10000/8
 
+
+
 table inet dscptag {
+
+    map priomap { type dscp : classid ;
+        elements =  {ef : 1:11, cs5 : 1:11, cs6 : 1:11, cs7 : 1:11,
+                    cs4 : 1:12, af41 : 1:12, af42 : 1:12,
+                    cs2 : 1:14 , cs1 : 1:15, cs0 : 1:13}
+    }
+
 
     set xfst4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
         timeout 1h
@@ -107,6 +116,9 @@ table inet dscptag {
         ip protocol tcp add @slowtcp4 {ip saddr . ip daddr . tcp sport . tcp dport limit rate 150/second burst 150 packets } ip dscp set cs4
         ip6 nexthdr tcp add @slowtcp6 {ip6 saddr . ip6 daddr . tcp sport . tcp dport limit rate 150/second burst 150 packets} ip6 dscp set cs4
 
+        ## classify for the HFSC queues:
+        meta priority set ip dscp map @priomap
+        meta priority set ip6 dscp map @priomap
 
     }
 }
