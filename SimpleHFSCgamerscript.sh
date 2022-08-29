@@ -56,7 +56,7 @@ DSCPSCRIPT="/usr/share/nftables.d/ruleset-post/dscptag.nft"
 if [ ! -f $DSCPSCRIPT ]; then
     workdir=$(pwd)
     echo "You do not have the DSCP tagging script, downloading from github"
-    cd /etc/
+    cd /usr/share/nftables.d/ruleset-post/
     wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.nft
     cd $workdir
 fi
