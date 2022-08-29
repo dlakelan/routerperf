@@ -15,13 +15,13 @@ define uprate = 15000 # kbits/sec ... CHANGE ME
 table inet dscptag {
 
     chain drop995 {
-        random mod 1000 < 995 drop
+        numgen random mod 1000 < 995 drop
     }
     chain drop95 {
-        random mod 100 < 95 drop
+        numgen random mod 100 < 95 drop
     }
     chain drop50 {
-        random mod 100 < 50 drop
+        numgen random mod 100 < 50 drop
     }
 
 
@@ -48,7 +48,7 @@ table inet dscptag {
         ip protocol tcp tcp flags & ack == ack meta length < 100 add @fast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 3000/second} jump drop 95
         ip protocol tcp tcp flags & ack == ack meta length < 100 add @med4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop 50
         ip protocol tcp tcp flags & ack == ack meta length < 100 add @slow4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop 50
-        ## for almost everyone we won't send more than 150 acks/second
+        ## for almost everyone we won't send more than 150-400 acks/second
 
         ip protocol udp udp dport $vidconfports ip dscp set cs4
         ip6 nexthdr udp udp dport $vidconfports ip6 dscp set cs4
