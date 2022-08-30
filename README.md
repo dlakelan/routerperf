@@ -2,12 +2,9 @@
 # Router custom QoS script: SimpleHFSCgamerscript.sh
 
 SimpleHFSCgamerscript.sh is a shell script that will set up highly
-responsive QoS for a wired router with a single LAN on OpenWrt. It is
-important that you use a single ethernet device for your LAN, not a
-bridge with wifi, otherwise this script will not see all packets
-coming down from the internet as it only regulates ONE lan device and
-a bridge with ethernet and wifi contains two devices.
+responsive QoS for a wired router with a single LAN on OpenWrt. 
 
+- Updated script works with modern nftables based firewalls (fw4 or custom by you)
 - log into your OpenWrt router
 - cd /etc
 - wget --no-check-certificates https://raw.githubusercontent.com/dlakelan/routerperf/master/SimpleHFSCgamerscript.sh
@@ -18,32 +15,29 @@ a bridge with ethernet and wifi contains two devices.
   a veth based design. If you want to use this set "USEVETHDOWN=yes"
   and "LANBR=br-lan" or change the name of your lan bridge if you have
   altered it from the OpenWrt default
-- edit the script to include your gaming boxes in the set of ips that is prioritized for UDP: 
+- edit the dscptag.nft script to include your gaming boxes in the set of ips that is prioritized for UDP: 
 - if you want to use netem also grab the files in tc-dists folder and place in /usr/lib/tc on your router
 
-```
-for ip4 in 192.168.1.111 192.168.1.222; do
-    ipset add realtimeset4 "$ip4"
-done
 
-for ip6 in 2001:db8::1 2001:db8::2 ; do
-    ipset add realtimeset6 "$ip6"
-done
+Edit these sets to put your came consoles etc in the realtime ones, and 
+put your annoying devices that ruin your games in the lowpriolan ones
+
 ```
-- You will need some packages, and I'm not sure what they all are, but you need packages for ipsets, hashlimits, the HFSC qdisc, veth modules, ip-full and probably a few others. If someone can give me a list, I will put it here.
+define realtime4 = {192.168.109.1} # example, just add all your game console here
+define realtime6 = {fd90::129a} ## example only replace with game console
+define lowpriolan4 = {192.168.109.2} # example, add your low priority lan machines here
+define lowpriolan6 = {fd90::129a} ## example, add your low priority lan ipv6 PUBLIC addr here
+
+```
+
+- You will need some packages, with the new nftables version it should be much less than before.
 - Preliminary package list suggests this is enough:
   - kmod-sched
-  - ipset
-  - kmod-ipt-ipset
   - ip-full
   - kmod-veth
-  - iptables-mod-hashlimit
-  - kmod-ipt-hashlimit
   - tc
-  - iptables-mod-ipopt
-  - iptables-mod-conntrack-extra
 - edit the script to include bulk ports for torrent clients that you use
-- edit dscptag.sh to add any rules you want to use for custom DSCP tagging
+- edit dscptag.nft to add any rules you want to use for custom DSCP tagging
 - If you are using the veth based method, then you need to add a custom OpenWrt interface for the veth device, do:
 
 From the LUCI web interface:
@@ -54,6 +48,8 @@ From the LUCI web interface:
 - under physical settings > interface = lanveth
 - under firewall settings > assign firewall-zone = LAN
 
+
+To install the script copy the SimpleHFSCgamerscript.sh to some place like /root. And copy dscptag.sh to /usr/share/nftables.d/ruleset-post/
 
 
 Now, for testing, run the script
