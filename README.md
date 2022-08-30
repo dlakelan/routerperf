@@ -38,6 +38,7 @@ define lowpriolan6 = {fd90::129a} ## example, add your low priority lan ipv6 PUB
   - tc
 - edit the script to include bulk ports for torrent clients that you use
 - edit dscptag.nft to add any rules you want to use for custom DSCP tagging
+- also edit dscptag.nft to calculate the bandwidths and byte counts mentioned at the top of the script
 - If you are using the veth based method, then you need to add a custom OpenWrt interface for the veth device, do:
 
 From the LUCI web interface:
