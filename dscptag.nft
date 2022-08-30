@@ -15,6 +15,9 @@ define uprate = 15000 # kbits/sec ... CHANGE ME
 define first500ms = 937500 # downrate * 500/8
 define first10s = 18750000 # downrate * 10000/8
 
+define wan = "eth1.2" # change me
+
+
 table inet dscptag # forward declaration so the next command always works
 
 flush table inet dscptag # clear all the rules
@@ -122,5 +125,7 @@ table inet dscptag {
         meta priority set ip dscp map @priomap
         meta priority set ip6 dscp map @priomap
 
+        meta oifname $wan ip dscp set cs0 ## comment out if you don't want to wash dscp upload to internet
+        meta oifname $wan ip6 dscp set cs0 ## comment out like above
     }
 }
