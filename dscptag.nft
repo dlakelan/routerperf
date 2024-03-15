@@ -1,0 +1,131 @@
+
+define udpbulkport = {51413}
+define tcpbulkport = {51413,6881-6889}
+define vidconfports = {10000,3478-3479,8801-8802,19302-19309,5938,53}
+define realtime4 = {192.168.109.1} # example, just add all your game console here
+define realtime6 = {fd90::129a} ## example only replace with game console
+define lowpriolan4 = {192.168.109.2} # example, add your low priority lan machines here
+define lowpriolan6 = {fd90::129a} ## example, add your low priority lan ipv6 PUBLIC addr here
+
+define ackrate = 300
+
+define downrate = 15000 # kbits/sec ... CHANGE ME
+define uprate = 15000 # kbits/sec ... CHANGE ME
+
+define first500ms = 937500 # downrate * 500/8
+define first10s = 18750000 # downrate * 10000/8
+
+define wan = "eth1.2" # change me
+
+
+table inet dscptag # forward declaration so the next command always works
+
+flush table inet dscptag # clear all the rules
+
+table inet dscptag {
+
+    map priomap { type dscp : classid ;
+        elements =  {ef : 1:11, cs5 : 1:11, cs6 : 1:11, cs7 : 1:11,
+                    cs4 : 1:12, af41 : 1:12, af42 : 1:12,
+                    cs2 : 1:14 , cs1 : 1:15, cs0 : 1:13}
+    }
+
+
+    set xfst4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        timeout 5m
+    }
+    set fast4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        timeout 5m
+    }
+    set med4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        timeout 5m
+    }
+    set slow4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        timeout 5m
+    }
+    set udp_meter4 {typeof ip saddr . ip daddr . udp sport . udp dport
+        timeout 5m
+    }
+    set udp_meter6 {typeof ip6 saddr . ip6 daddr . udp sport . udp dport
+        timeout 5m
+    }
+    set slowtcp4 {typeof ip saddr . ip daddr . tcp sport . tcp dport
+        timeout 5m
+    }
+    set slowtcp6 {typeof ip6 saddr . ip6 daddr . tcp sport . tcp dport
+        timeout 5m
+    }
+
+    chain drop995 {
+        numgen random mod 1000 < 995 drop
+    }
+    chain drop95 {
+        numgen random mod 100 < 95 drop
+    }
+    chain drop50 {
+        numgen random mod 100 < 50 drop
+    }
+
+
+    chain dscptag {
+        type filter hook forward priority 0; policy accept;
+
+        # wash all the DSCP to begin with ... you can comment this out
+        ip dscp set cs0 counter
+        ip6 dscp set cs0 counter
+
+        ip protocol udp udp sport $udpbulkport ip dscp set cs1
+        ip6 nexthdr udp udp sport $udpbulkport ip6 dscp set cs1
+
+        ip protocol udp udp dport $udpbulkport ip dscp set cs1
+        ip6 nexthdr udp udp dport $udpbulkport ip6 dscp set cs1
+
+        ip protocol tcp tcp sport $tcpbulkport ip dscp set cs1
+        ip6 nexthdr tcp tcp sport $tcpbulkport ip6 dscp set cs1
+        ip protocol tcp tcp dport $tcpbulkport ip dscp set cs1
+        ip6 nexthdr tcp tcp dport $tcpbulkport ip6 dscp set cs1
+
+        ## ack limit rate to about 150 pps by decimating the quantity of pure acks being sent
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @xfst4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 30000/second} jump drop995 
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @fast4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 3000/second} jump drop95
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @med4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop50
+        ip protocol tcp tcp flags & ack == ack meta length < 100 add @slow4ack {ip daddr . ip saddr . tcp dport . tcp sport limit rate over 300/second} jump drop50
+        ## for almost everyone we won't send more than 150-400 acks/second
+
+        ip protocol udp udp dport $vidconfports ip dscp set cs4
+        ip6 nexthdr udp udp dport $vidconfports ip6 dscp set cs4
+
+        ip protocol udp ip daddr $realtime4 ip dscp set cs5
+        ip protocol udp ip saddr $realtime4 ip dscp set cs5
+
+        ip6 nexthdr udp ip6 daddr $realtime6 ip6 dscp set cs5
+        ip6 nexthdr udp ip6 saddr $realtime6 ip6 dscp set cs5
+
+        ip protocol udp ip daddr $lowpriolan4 ip dscp set cs2
+        ip protocol udp ip saddr $lowpriolan4 ip dscp set cs2
+
+        ip6 nexthdr udp ip6 daddr $lowpriolan6 ip6 dscp set cs2
+        ip6 nexthdr udp ip6 saddr $lowpriolan6 ip6 dscp set cs2
+
+        #downgrade udp going faster than 450 pps, probably not realtime traffic
+        ip protocol udp ip dscp > cs2 add @udp_meter4 {ip saddr . ip daddr . udp sport . udp dport limit rate over 450/second} counter ip dscp set cs2
+        ip6 nexthdr udp ip6 dscp > cs2 add @udp_meter6 {ip6 saddr . ip6 daddr . udp sport . udp dport limit rate over 450/second} counter ip6 dscp set cs2
+
+        # down prioritize the first 500ms of tcp packets
+        ip protocol tcp ct bytes < $first500ms ip dscp < cs4 ip dscp set cs2
+
+        # downgrade tcp that has transferred more than 10 seconds worth of packets
+        ip protocol tcp ct bytes > $first10s ip dscp < cs4 ip dscp set cs1
+
+        ## tcp with less than 150 pps gets upgraded to cs4
+        ip protocol tcp add @slowtcp4 {ip saddr . ip daddr . tcp sport . tcp dport limit rate 150/second burst 150 packets } ip dscp set cs4
+        ip6 nexthdr tcp add @slowtcp6 {ip6 saddr . ip6 daddr . tcp sport . tcp dport limit rate 150/second burst 150 packets} ip6 dscp set cs4
+
+        ## classify for the HFSC queues:
+        meta priority set ip dscp map @priomap
+        meta priority set ip6 dscp map @priomap
+
+        meta oifname $wan ip dscp set cs0 ## comment out if you don't want to wash dscp upload to internet
+        meta oifname $wan ip6 dscp set cs0 ## comment out like above
+    }
+}

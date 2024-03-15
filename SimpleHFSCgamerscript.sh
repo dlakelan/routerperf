@@ -51,13 +51,13 @@ GAMEDOWN=$((DOWNRATE*15/100+400))
 #GAMEDOWN=800
 
 
-DSCPSCRIPT="/etc/dscptag.sh"
+DSCPSCRIPT="/usr/share/nftables.d/ruleset-post/dscptag.nft"
 
 if [ ! -f $DSCPSCRIPT ]; then
     workdir=$(pwd)
     echo "You do not have the DSCP tagging script, downloading from github"
-    cd /etc/
-    wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
+    cd /usr/share/nftables.d/ruleset-post/
+    wget https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.nft
     cd $workdir
 fi
 
@@ -86,53 +86,6 @@ if [ $gameqdisc != "fq_codel" -a $gameqdisc != "red" -a $gameqdisc != "pfifo" -a
     echo "Other qdiscs are not tested and do not work on OpenWrt yet anyway, reverting to red"
     gameqdisc="red"
 fi
-
-## set up your ipsets here:
-
-## get rid of any references to the ipsets
-iptables -t mangle -F dscptag > /dev/null 2>&1
-
-
-for set in realtimeset4 lowprioset4  ; do
-    ipset destroy $set > /dev/null 2>&1
-    ipset create $set hash:ip > /dev/null 2>&1
-    ipset flush $set > /dev/null 2>&1
-done
-
-for set in realtimeset6 lowprioset6  ; do
-    ipset destroy $set > /dev/null 2>&1
-    ipset create $set hash:ip family inet6 > /dev/null 2>&1
-    ipset flush $set > /dev/null 2>&1
-done
-
-## some examples to add your gaming devices to the realtime sets,
-## allows you to have more than one console etc. Just add your ips
-## into the list of ips in the for loop
-
-for ip4 in 192.168.1.111 192.168.1.222; do
-    ipset add realtimeset4 "$ip4"
-done
-
-for ip6 in 2001:db8::1 2001:db8::2 ; do
-    ipset add realtimeset6 "$ip6"
-done
-
-
-### add ips of "low priority" machines, examples might include things
-### that interfere with more important stuff, like gaming ;-). For
-### example 4k TVs will typically buffer big chunks of data which can
-### cause gaming stuttering but because they have buffers they don't
-### really need super high priority
-
-
-
-for ip4 in 192.168.1.111 192.168.1.222; do
-    ipset add lowprioset4 "$ip4"
-done
-
-for ip6 in 2001:db8::1 2001:db8::2 ; do
-    ipset add lowprioset6 "$ip6"
-done
 
 
 
@@ -214,11 +167,6 @@ and your gaming server, any of those can have variable delay and ruin
 your gaming, and there is NOTHING that your router can do about it.
 
 EOF
-
-ipt64 (){
-    iptables $*
-    ip6tables $*
-}
 
 
 setqdisc () {
@@ -364,99 +312,6 @@ setqdisc $WAN $UPRATE $GAMEUP $gameqdisc wan
 
 setqdisc $LAN $DOWNRATE $GAMEDOWN $gameqdisc lan
 
-## we want to classify packets, so use these rules
-
-cat <<EOF
-
-We are going to add classification rules via iptables to the
-FORWARD chain. You should actually read and ensure that these
-rules make sense in your firewall before running this script. 
-
-Continue? (type y or n and then RETURN/ENTER)
-EOF
-
-read -r cont
-
-if [ "$cont" = "y" ]; then
-
-    /etc/init.d/firewall restart
-    
-    ipt64 -t mangle -N dscptag
-    ipt64 -t mangle -F dscptag
-    ipt64 -t mangle -F OUTPUT ## not sure why this is needed, but firewall restart doesn't flush OUTPUT
-    
-    
-    if [ "$WASHDSCPUP" = "yes" ]; then
-	if [ $USEVETHDOWN = "yes" ]; then
-	    ipt64 -t mangle -A FORWARD -i $LANBR -j DSCP --set-dscp-class CS0
-	else
-	    ipt64 -t mangle -A FORWARD -i $LAN -j DSCP --set-dscp-class CS0
-	fi
-    fi
-    if [ "$WASHDSCPDOWN" = "yes" ]; then
-	ipt64 -t mangle -A FORWARD -i $WAN -j DSCP --set-dscp-class CS0
-    fi
-
-    ipt64 -t mangle -A POSTROUTING -j dscptag
-    source $DSCPSCRIPT
-    
-    ipt64 -t mangle -A FORWARD -j CLASSIFY --set-class 1:13 -m comment --comment "Default" # default everything to 1:13,  the "normal" qdisc
-
-    # traffic from the router to the LAN bypasses the download queue
-    ipt64 -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:2
-    
-    ## these dscp values go to realtime: EF, CS5, CS6, CS7 #Change "PS4" to your console etc. "Xbox"
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class EF -j CLASSIFY --set-class 1:11 -m comment --comment "High"
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS5 -j CLASSIFY --set-class 1:11 -m comment --comment "PS4"
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS6 -j CLASSIFY --set-class 1:11 -m comment --comment "High"
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS7 -j CLASSIFY --set-class 1:11 -m comment --comment "High"
-    
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS4 -j CLASSIFY --set-class 1:12 -m comment --comment "Fast"
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF41 -j CLASSIFY --set-class 1:12 -m comment --comment "Fast"
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class AF42 -j CLASSIFY --set-class 1:12 -m comment --comment "Fast"
-    
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS2 -j CLASSIFY --set-class 1:14 -m comment --comment "Low"
-    ipt64 -t mangle -A POSTROUTING -m dscp --dscp-class CS1 -j CLASSIFY --set-class 1:15 -m comment --comment "Bulk"
-    
-    ## wash DSCP out to the ISP now that we used it for classifying
-
-    if [ "$WASHDSCPUP" = "yes" ]; then
-	ipt64 -t mangle -A FORWARD -o $WAN -j DSCP --set-dscp-class CS0
-    fi
-
-    
-    case $gameqdisc in
-	"red")
-	;;
-	"pfifo")
-	;;
-	*)
-	    echo "YOU MUST PLACE CLASSIFIERS FOR YOUR GAME TRAFFIC HERE"
-	    echo "SEND GAME TRAFFIC TO 2:1 (high) or 2:2 (medium) or 2:3 (normal)"
-	    echo "Requires use of tc filters! -j CLASSIFY won't work!"
-	    ;;
-    esac
-    
-    if [ $UPRATE -lt 3000 -o $DOWNRATE -lt 3000 ]; then
-	ipt64 -t mangle -F FORWARD
-    fi
-    
-    if [ $UPRATE -lt 3000 ]; then
-	ipt64 -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o $LAN -j TCPMSS --set-mss 540
-    fi
-    if [ $DOWNRATE -lt 3000 ]; then
-	## need to clamp MSS to 540 bytes in both directions to reduce
-	## the latency increase caused by 1 packet ahead of us in the
-	## queue since rates are too low to send 1500 byte packets at acceptable delay
-	ipt64 -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o $WAN -j TCPMSS --set-mss 540
-    fi
-
-
-else
-    cat <<EOF
-Check the rules and come back when you're ready.
-EOF
-fi
 
 echo "DONE!"
 
