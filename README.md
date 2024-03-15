@@ -4,6 +4,11 @@
 SimpleHFSCgamerscript.sh is a shell script that will set up highly
 responsive QoS for a wired router with a single LAN on OpenWrt. 
 
+Thanks to [Hudra on the OpenWrt forum](https://forum.openwrt.org/t/help-me-update-my-hfsc-shaper-scripts-for-fw4-nftables/135594/258?u=dlakelan)
+There is now an install.sh and uninstall.sh script. See the above link to find out how to use it.
+
+
+
 - Updated script works with modern nftables based firewalls (fw4 or custom by you)
 - log into your OpenWrt router
 - cd /etc
