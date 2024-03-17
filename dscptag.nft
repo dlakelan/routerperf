@@ -20,7 +20,7 @@ define wan = "eth1.2" # change me
 
 table inet dscptag # forward declaration so the next command always works
 
-delete table inet dscptag # clear all the rules
+flush table inet dscptag # clear all the rules
 
 table inet dscptag {
 
@@ -32,27 +32,35 @@ table inet dscptag {
 
 
     set xfst4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        flags dynamic;
         timeout 5m
     }
     set fast4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        flags dynamic;
         timeout 5m
     }
     set med4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        flags dynamic;
         timeout 5m
     }
     set slow4ack { typeof ip daddr . ip saddr . tcp dport . tcp sport
+        flags dynamic;
         timeout 5m
     }
     set udp_meter4 {typeof ip saddr . ip daddr . udp sport . udp dport
+        flags dynamic;
         timeout 5m
     }
     set udp_meter6 {typeof ip6 saddr . ip6 daddr . udp sport . udp dport
+        flags dynamic;
         timeout 5m
     }
     set slowtcp4 {typeof ip saddr . ip daddr . tcp sport . tcp dport
+        flags dynamic;
         timeout 5m
     }
     set slowtcp6 {typeof ip6 saddr . ip6 daddr . tcp sport . tcp dport
+        flags dynamic;
         timeout 5m
     }
 
