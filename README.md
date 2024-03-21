@@ -12,9 +12,9 @@ There is now an install.sh and uninstall.sh script. See the above link to find o
 - Updated script works with modern nftables based firewalls (fw4 or custom by you)
 - log into your OpenWrt router
 - cd /etc
-- wget --no-check-certificates https://raw.githubusercontent.com/dlakelan/routerperf/master/SimpleHFSCgamerscript.sh
+- wget --no-check-certificate https://raw.githubusercontent.com/dlakelan/routerperf/master/SimpleHFSCgamerscript.sh
 - chmod a+x /etc/SimpleHFSCgamerscript.sh
-- wget --no-check-certificates https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
+- wget --no-check-certificate https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.sh
 - edit SimpleHFSCgamerscript.sh to set your WAN and LAN interfaces, your network speeds, and the speed you reserve for your game (GAMEUP and GAMEDOWN)
 - As of now the system will work with a combo wired+wifi router using
   a veth based design. If you want to use this set "USEVETHDOWN=yes"
