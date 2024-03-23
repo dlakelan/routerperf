@@ -20,7 +20,7 @@ define wan = "eth1.2" # change me
 
 table inet dscptag # forward declaration so the next command always works
 
-flush table inet dscptag # clear all the rules
+delete table inet dscptag # clear all the rules
 
 table inet dscptag {
 
