@@ -14,9 +14,9 @@ done
 echo "Downloading and setting up scripts..."
 
 # Download and set execution permissions for the scripts
-wget -O /etc/SimpleHFSCgamerscript.sh https://raw.githubusercontent.com/dlakelan/routerperf/nftables/SimpleHFSCgamerscript.sh && chmod a+x /etc/SimpleHFSCgamerscript.sh
-wget -O /etc/hotplug.d/iface/13-SimpleHFSCGamerScriptHotplug https://raw.githubusercontent.com/dlakelan/routerperf/nftables/13-SimpleHFSCGamerScriptHotplug
-mkdir -p /usr/share/nftables.d/ruleset-post/ && wget -O /usr/share/nftables.d/ruleset-post/dscptag.nft https://raw.githubusercontent.com/dlakelan/routerperf/nftables/dscptag.nft
+wget -O /etc/SimpleHFSCgamerscript.sh https://raw.githubusercontent.com/dlakelan/routerperf/master/SimpleHFSCgamerscript.sh && chmod a+x /etc/SimpleHFSCgamerscript.sh
+wget -O /etc/hotplug.d/iface/13-SimpleHFSCGamerScriptHotplug https://raw.githubusercontent.com/dlakelan/routerperf/master/13-SimpleHFSCGamerScriptHotplug
+mkdir -p /usr/share/nftables.d/ruleset-post/ && wget -O /usr/share/nftables.d/ruleset-post/dscptag.nft https://raw.githubusercontent.com/dlakelan/routerperf/master/dscptag.nft
 
 echo "Configuring veth interface..."
 
