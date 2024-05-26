@@ -291,6 +291,9 @@ case $useqdisc in
     "fq_codel")
 	tc qdisc add dev "$DEV" parent "1:11" fq_codel memory_limit $((RATE*200/8)) interval "${INTVL}ms" target "${TARG}ms" quantum $((MTU * 2))
 	;;
+    "cake")
+	tc qdisc add dev "$DEV" parent "1:11" cake besteffort rtt "${INTVL}ms" #memlimit can be used but cake has higher requirements than fq_codel
+	;;
     "netem")
 	tc qdisc add dev "$DEV" parent 1:11 handle 10: netem limit $((4+9*RATE/8/500)) delay "${netemdelayms}ms" "${netemjitterms}ms" distribution "$netemdist"
 	;;
@@ -299,9 +302,9 @@ case $useqdisc in
 esac
 
 
-echo "adding fq_codel qdisc for non-game traffic"
+echo "adding cake qdisc for non-game traffic"
 for i in 12 13 14 15; do 
-    tc qdisc add dev "$DEV" parent "1:$i" fq_codel memory_limit $((RATE*200/8)) interval "${INTVL}ms" target "${TARG}ms" quantum $((MTU * 2))
+    tc qdisc add dev "$DEV" parent "1:$i" cake besteffort interval "${INTVL}ms" #memlimit can be used but cake has higher requirements than fq_codel, cake also offers ack-filter-aggressive to drop extra acks.
 done
 
 
