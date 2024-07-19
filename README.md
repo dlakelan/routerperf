@@ -1,6 +1,12 @@
 
 # Router custom QoS script: SimpleHFSCgamerscript.sh
 
+# NOTICE: This version is out of date and has been forked and maintained instead by 
+# hudra0 you should use that version. I am still consulting with him as needed
+# to encourage further maintenance and development.
+
+
+
 SimpleHFSCgamerscript.sh is a shell script that will set up highly
 responsive QoS for a wired router with a single LAN on OpenWrt. 
 
