@@ -1,9 +1,7 @@
 
 # Router custom QoS script: SimpleHFSCgamerscript.sh
 
-# NOTICE: This version is out of date and has been forked and maintained instead by 
-# hudra0 you should use that version. I am still consulting with him as needed
-# to encourage further maintenance and development.
+# NOTICE: This version is out of date and has been forked and maintained instead by hudra0 you should use that version. I am still consulting with him as needed to encourage further maintenance and development.
 
 
 
